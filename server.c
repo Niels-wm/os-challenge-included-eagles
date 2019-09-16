@@ -86,18 +86,17 @@ int main(int argc, char *argv[]) {
 
     /* SHA 256 ALGO */ 
     printf("\nStarting the Reverse Hashing (Brute Force) Algorithm:\n");
-    uint64_t j = packet1.start;
-    uint8_t TheHash[32];
+    uint64_t answer = packet1.start;
+    uint8_t theHash[32];
 
-    for (j; j <= packet1.end; j++){
+    for (answer; answer <= packet1.end; answer++){
 
-        uint64_t numberToHash = j;
-        bzero(TheHash, 32);
-        unsigned char *hashedNumber = SHA256((char*) &numberToHash, 8, TheHash);
+        bzero(theHash, 32);
+        unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
 
 
-        if (memcmp(TheHash, packet1.hash, sizeof(TheHash)) == 0) {
-            printf("Found a match, with:  %" PRIu64, j);
+        if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
+            printf("Found a match, with:  %" PRIu64, answer);
             break;
         }
     }
@@ -105,13 +104,13 @@ int main(int argc, char *argv[]) {
     
     printf("\nHere are the calculated hash:\n");
     for (i = 0; i < 32; i++){
-        printf("%0x", TheHash[i]);
+        printf("%0x", theHash[i]);
     }
     printf("\n");
 
 
     /* Send */
-    uint64_t answer = htobe64(j);
+    answer = htobe64(answer);
     n = write(newSockFileDescripter, &answer ,8);
 
     if(n < 0) {
