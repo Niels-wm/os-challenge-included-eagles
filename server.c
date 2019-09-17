@@ -33,6 +33,14 @@ int main(int argc, char *argv[]) {
         error("ERROR opening socket");
     }
 
+    /* Disable safety feature */
+    // The operating system sets a timeout on TCP sockets after using them. 
+    // It does that to make sure that all information from the old program 
+    // is gone before starting a new one. This disable the timeout.
+    int option = 1;
+    setsockopt(sockFileDescripter, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
+
+
     /* Initialize socket structure */
     // bzero() is used to set all the socket structures with null values. It does the same thing as the following:
     // memset(&serverAddr, '\0', sizeof(serverAddr));
@@ -45,7 +53,7 @@ int main(int argc, char *argv[]) {
 
     /* Bind */
     if (bind(sockFileDescripter, (struct sockaddr *) &serverAddr, sizeof(serverAddr)) < 0){
-        error("ERROR on binding");
+        perror("ERROR on binding");
     }
 
 
@@ -62,7 +70,8 @@ int main(int argc, char *argv[]) {
 
 
     /* Recive */
-    n = read(newSockFileDescripter, &packet1, 49);
+    
+    n = read(newSockFileDescripter, &packet1, sizeof(packet1));
 
     if (n < 0) {
         error("ERROR reading from socket");
