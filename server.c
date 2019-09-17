@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
 
 
     /* Recive */
-    
+    bzero((char *)&packet1, sizeof(packet1));
     n = read(newSockFileDescripter, &packet1, sizeof(packet1));
 
     if (n < 0) {
