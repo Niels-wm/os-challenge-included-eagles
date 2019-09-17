@@ -13,6 +13,8 @@
 
 #define PORT 5003
 
+void reversehashing (int sock);
+
 struct Packet {
    uint8_t hash[32];
    uint64_t start;
@@ -22,21 +24,21 @@ struct Packet {
 
 int main(int argc, char *argv[]) {
     int sockFileDescripter, newSockFileDescripter;
-    struct Packet packet1;
     struct sockaddr_in serverAddr, clientAddr;
     socklen_t clientAddrSize;
-    int n, i;
+    int n, i, pid;
 
 
     sockFileDescripter = socket(AF_INET, SOCK_STREAM, 0);
     if (sockFileDescripter < 0) {
-        error("ERROR opening socket");
+        perror("ERROR opening socket");
+        exit(1);
     }
 
     /* Disable safety feature */
     // The operating system sets a timeout on TCP sockets after using them. 
     // It does that to make sure that all information from the old program 
-    // is gone before starting a new one. This disable the timeout.
+    // is gone before starting a new one
     int option = 1;
     setsockopt(sockFileDescripter, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
 
@@ -54,6 +56,7 @@ int main(int argc, char *argv[]) {
     /* Bind */
     if (bind(sockFileDescripter, (struct sockaddr *) &serverAddr, sizeof(serverAddr)) < 0){
         perror("ERROR on binding");
+        exit(1);
     }
 
 
@@ -62,19 +65,52 @@ int main(int argc, char *argv[]) {
     clientAddrSize = sizeof(clientAddr);
 
 
-    /* Accept */
-    newSockFileDescripter = accept(sockFileDescripter, (struct sockaddr *)&clientAddr, &clientAddrSize);
-    if (newSockFileDescripter < 0){
-        error("ERROR on accept");
+
+    // Put the accept statement and the following code in an infinite loop
+    while (1) {
+            
+            /* Accept */
+            newSockFileDescripter = accept(sockFileDescripter, (struct sockaddr *)&clientAddr, &clientAddrSize);
+            
+            if (newSockFileDescripter < 0){
+                perror("ERROR on accept");
+                exit(1);
+            }
+
+            /* Create child process */
+            pid = fork();
+
+            if (pid < 0) {
+                perror("ERROR on fork");
+                exit(1);
+            }
+            
+            if (pid == 0) {
+                /* This is the client process */
+                close(sockFileDescripter);
+                reversehashing(newSockFileDescripter);
+                exit(0);
+            } else {
+                close(newSockFileDescripter);
+            }
+
     }
+}
+
+
+
+void reversehashing (int sock) {
+    struct Packet packet1;
+    int n, i;
 
 
     /* Recive */
     bzero((char *)&packet1, sizeof(packet1));
-    n = read(newSockFileDescripter, &packet1, sizeof(packet1));
+    n = read(sock, &packet1, sizeof(packet1));
 
     if (n < 0) {
-        error("ERROR reading from socket");
+        perror("ERROR reading from socket");
+        exit(1);
     }
 
     // Reverse the start, end and p:
@@ -120,12 +156,10 @@ int main(int argc, char *argv[]) {
 
     /* Send */
     answer = htobe64(answer);
-    n = write(newSockFileDescripter, &answer ,8);
+    n = write(sock, &answer ,8);
 
     if(n < 0) {
-        error("ERROR writing to socket");
+        perror("ERROR writing to socket");
+        exit(1);
     }
-
-    
-    return 0;
 }
