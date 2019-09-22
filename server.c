@@ -54,6 +54,7 @@ int main(int argc, char *argv[]) {
 
 
     /* Bind */
+    printf("Binding");
     if (bind(sockFileDescripter, (struct sockaddr *) &serverAddr, sizeof(serverAddr)) < 0){
         perror("ERROR on binding");
         exit(1);
