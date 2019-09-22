@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     socklen_t clientAddrSize;
     int n, i, pid;
 
-
+    printf("Hey")
     sockFileDescripter = socket(AF_INET, SOCK_STREAM, 0);
     if (sockFileDescripter < 0) {
         perror("ERROR opening socket");
