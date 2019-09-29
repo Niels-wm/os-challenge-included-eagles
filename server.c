@@ -134,8 +134,7 @@ void reversehashing (int sock) {
     char* res = find(packet1.hash, NULL);
 
     if (res != -1) {
-        answer = res;
-        printf("HEEEJSUCCESS");
+        printf("HEEEJSUCCESS\n");
     } else {
         /* SHA 256 ALGO */
         printf("\nStarting the Reverse Hashing (Brute Force) Algorithm:\n");
@@ -158,9 +157,6 @@ void reversehashing (int sock) {
         }
     }
 
-
-
-    
     printf("\nHere are the calculated hash:\n");
     for (i = 0; i < 32; i++){
         printf("%0x", theHash[i]);
