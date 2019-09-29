@@ -127,6 +127,7 @@ void reversehashing (int sock) {
         printf("%0x", packet1.hash[i]);
     }
 
+
     printf("\nHere are the start:   %" PRIu64 "\n", packet1.start);
     printf("Here are the end:     %" PRIu64 "\n", packet1.end);
     printf("Here are the p:       %d\n", packet1.p);
@@ -138,38 +139,50 @@ void reversehashing (int sock) {
     uint64_t answer = packet1.start;
     uint8_t theHash[32];
 
-    insert(packet1.hash, answer, NULL);
-    //uint64_t hej = find(packet1.hash, NULL);
-    //printf("\n\n%s\n", hej);
-    //printf("HEJ\n");
 
-    for (answer; answer <= packet1.end; answer++){
+    uint64_t *hej = find(packet1.hash, NULL);
 
-        bzero(theHash, 32);
-        unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
+    if (hej == NULL) {
+      printf("\n YOOO\n");
+      for (answer; answer <= packet1.end; answer++){
+
+          bzero(theHash, 32);
+          unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
 
 
-        if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
+          if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
+              insert(packet1.hash, answer, NULL);
+              printf("Found a match, with:  %" PRIu64, answer);
+              break;
+          }
+      }
 
-            printf("Found a match, with:  %" PRIu64, answer);
-            break;
-        }
+
+      printf("\nHere are the calculated hash:\n");
+      for (i = 0; i < 32; i++){
+          printf("%0x", theHash[i]);
+      }
+      printf("\n");
+
+      /* Send */
+      answer = htobe64(answer);
+      n = write(sock, &answer ,8);
+
+      if(n < 0) {
+          perror("ERROR writing to socket");
+          exit(1);
+      }
+    } else {
+      printf("\n GOTEM \n" );
+      answer = htobe64(*hej);
+      n = write(sock, &answer ,8);
+
+      if(n < 0) {
+          perror("ERROR writing to socket");
+          exit(1);
+      }
+
     }
 
 
-    printf("\nHere are the calculated hash:\n");
-    for (i = 0; i < 32; i++){
-        printf("%0x", theHash[i]);
-    }
-    printf("\n");
-
-
-    /* Send */
-    answer = htobe64(answer);
-    n = write(sock, &answer ,8);
-
-    if(n < 0) {
-        perror("ERROR writing to socket");
-        exit(1);
-    }
 }

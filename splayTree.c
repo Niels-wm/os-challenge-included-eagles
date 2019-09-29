@@ -203,7 +203,7 @@ void splay(Node *node) {
 
 void insert(uint8_t *newHash, uint64_t value, struct Node *node) {
 
-    if (!node ) {
+    if (!node) {
         if (!root) {
             root = (Node *) malloc(sizeof(Node));
             root->parent = NULL;
@@ -249,19 +249,20 @@ void insert(uint8_t *newHash, uint64_t value, struct Node *node) {
 
 }
 
-uint64_t find(uint8_t n[32], struct Node *node) {
+uint64_t* find(uint8_t n[32], struct Node *node) {
 
     if (node == NULL) {
         if (root == NULL) {
             return NULL;
         }
-        find(n, root);
+        return find(n, root);
+
     }
 
 
     if (memcmp(node->hash, n, sizeof(node->hash)) == 0) {
         splay(node);
-        return node->value;
+        return &node->value;
     }
 
     if (node->hash > n) {
@@ -278,7 +279,7 @@ uint64_t find(uint8_t n[32], struct Node *node) {
         }
     } else {
         splay(node);
-        return node->value;
+        return &node->value;
     }
 
     return NULL;
