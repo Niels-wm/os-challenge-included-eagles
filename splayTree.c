@@ -9,7 +9,7 @@ typedef struct Node {
     struct Node *right;
     struct Node *left;
     uint8_t hash[32];
-    uint64_t value;
+    char* value;
 } Node;
 
 struct Node *root;
@@ -249,11 +249,11 @@ void insert(uint8_t *newHash, uint64_t value, struct Node *node) {
 
 }
 
-uint64_t find(uint8_t n[32], struct Node *node) {
+char* find(uint8_t n[32], struct Node *node) {
 
     if (node == NULL) {
         if (root == NULL) {
-            return -1;
+            return NULL;
         }
         find(n, root);
     }
@@ -281,5 +281,5 @@ uint64_t find(uint8_t n[32], struct Node *node) {
         return node->value;
     }
 
-    return -1;
+    return NULL;
 }

@@ -147,8 +147,9 @@ void reversehashing (int sock) {
             bzero(theHash, 32);
             unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
 
-            if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
 
+            if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
+                insert(theHash, hashedNumber, NULL);
                 printf("Found a match, with:  %" PRIu64, answer);
                 break;
             }
