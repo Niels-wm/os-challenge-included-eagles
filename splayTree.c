@@ -8,8 +8,8 @@ typedef struct Node {
     struct Node *parent;
     struct Node *right;
     struct Node *left;
-    uint8_t hash;
-    int value;
+    uint8_t hash[32];
+    uint64_t value;
 } Node;
 
 struct Node *root;
@@ -201,16 +201,22 @@ void splay(Node *node) {
     root = node;
 }
 
-void insert(uint8_t newHash, int value, struct Node *node) {
-//    printf("%" PRIu8 "\n", newHash);
+void insert(uint8_t *newHash, uint64_t value, struct Node *node) {
 
-    if (!root) {
-        root = (Node *) malloc(sizeof(Node));
-        root->parent = NULL;
-        root->right = NULL;
-        root->left = NULL;
-        root->hash = newHash;
-        root->value = value;
+    if (!node ) {
+        if (!root) {
+            root = (Node *) malloc(sizeof(Node));
+            root->parent = NULL;
+            root->right = NULL;
+            root->left = NULL;
+            for (int i = 0; i < 32; ++i) {
+                root->hash[i] =  newHash[i];
+            }
+            root->value = value;
+            return;
+        }
+
+        insert(newHash, value, root);
         return;
     }
 
@@ -218,7 +224,9 @@ void insert(uint8_t newHash, int value, struct Node *node) {
         if (!node->left) {
             node->left = (Node *) malloc(sizeof(Node));
             node->left->parent = node;
-            node->left->hash = newHash;
+            for (int i = 0; i < 32; ++i) {
+                node->left->hash[i] = newHash[i];
+            }
             node->left->value = value;
             splay(node->left);
         } else {
@@ -228,7 +236,9 @@ void insert(uint8_t newHash, int value, struct Node *node) {
         if (!node->right) {
             node->right = (Node *) malloc(sizeof(Node));
             node->right->parent = node;
-            node->right->hash = newHash;
+            for (int i = 0; i < 32; ++i) {
+                node->right->hash[i] = newHash[i];
+            }
             node->right->value = value;
             splay(node->right);
         } else {
@@ -239,7 +249,21 @@ void insert(uint8_t newHash, int value, struct Node *node) {
 
 }
 
-int find(uint8_t n, struct Node *node) {
+uint64_t find(uint8_t n[32], struct Node *node) {
+
+    if (node == NULL) {
+        if (root == NULL) {
+            return -1;
+        }
+        find(n, root);
+    }
+
+
+    if (memcmp(node->hash, n, sizeof(node->hash)) == 0) {
+        splay(node);
+        return node->value;
+    }
+
     if (node->hash > n) {
         if (!node->right) {
             splay(node);
@@ -258,9 +282,4 @@ int find(uint8_t n, struct Node *node) {
     }
 
     return -1;
-}
-
-
-int main(int argc, char *argv[]) {
-    printf("hej");
 }

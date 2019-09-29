@@ -8,6 +8,8 @@
 #include <netdb.h>
 #include <netinet/in.h>
 
+#include "splayTree.c"
+
 #include <string.h>
 #include <inttypes.h>
 
@@ -58,6 +60,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
+    root = (Node *) malloc(sizeof(Node));
 
     /* Listen */
     listen(sockFileDescripter, 5);
@@ -96,6 +99,7 @@ int main(int argc, char *argv[]) {
     }
 }
 
+Node *root;
 
 
 void reversehashing (int sock) {
@@ -127,24 +131,31 @@ void reversehashing (int sock) {
     printf("Here are the end:     %" PRIu64 "\n", packet1.end);
     printf("Here are the p:       %d\n", packet1.p);
 
+    uint64_t res = find(packet1.hash, NULL);
 
+    if (res != -1) {
+        answer = res;
+        printf("HEEEJSUCCESS");
+    } else {
+        /* SHA 256 ALGO */
+        printf("\nStarting the Reverse Hashing (Brute Force) Algorithm:\n");
+        uint64_t answer = packet1.start;
+        uint8_t theHash[32];
 
-    /* SHA 256 ALGO */ 
-    printf("\nStarting the Reverse Hashing (Brute Force) Algorithm:\n");
-    uint64_t answer = packet1.start;
-    uint8_t theHash[32];
+        for (answer; answer <= packet1.end; answer++){
 
-    for (answer; answer <= packet1.end; answer++){
+            bzero(theHash, 32);
+            unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
 
-        bzero(theHash, 32);
-        unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
+            if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
 
-
-        if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
-            printf("Found a match, with:  %" PRIu64, answer);
-            break;
+                printf("Found a match, with:  %" PRIu64, answer);
+                break;
+            }
         }
     }
+
+
 
     
     printf("\nHere are the calculated hash:\n");
