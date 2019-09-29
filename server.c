@@ -155,21 +155,22 @@ void reversehashing (int sock) {
                 break;
             }
         }
+        printf("\nHere are the calculated hash:\n");
+        for (i = 0; i < 32; i++){
+            printf("%0x", theHash[i]);
+        }
+        printf("\n");
+
+
+        /* Send */
+        answer = htobe64(answer);
+        n = write(sock, &answer ,8);
+
+        if(n < 0) {
+            perror("ERROR writing to socket");
+            exit(1);
+        }
     }
 
-    /*printf("\nHere are the calculated hash:\n");
-    for (i = 0; i < 32; i++){
-        printf("%0x", theHash[i]);
-    }
-    printf("\n");*/
 
-
-    /* Send */
-    answer = htobe64(answer);
-    n = write(sock, &answer ,8);
-
-    if(n < 0) {
-        perror("ERROR writing to socket");
-        exit(1);
-    }
 }
