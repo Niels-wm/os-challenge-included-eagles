@@ -106,7 +106,7 @@ void reversehashing (int sock) {
     struct Packet packet1;
     int n, i;
 
-
+    printf("HEJEJ\n");
 
     /* Recive */
     bzero((char *)&packet1, sizeof(packet1));
