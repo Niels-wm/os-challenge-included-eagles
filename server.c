@@ -129,7 +129,7 @@ void reversehashing (int sock) {
 
     printf("\nHere are the start:   %" PRIu64 "\n", packet1.start);
     printf("Here are the end:     %" PRIu64 "\n", packet1.end);
-    printf("Here are the p:       %d\n", packet1.p);
+    printf("Here aare the p:       %d\n", packet1.p);
 
     char* res = find(packet1.hash, NULL);
 
