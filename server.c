@@ -131,7 +131,7 @@ void reversehashing (int sock) {
     printf("Here are the end:     %" PRIu64 "\n", packet1.end);
     printf("Here are the p:       %d\n", packet1.p);
 
-    uint64_t res = find(packet1.hash, NULL);
+    char* res = find(packet1.hash, NULL);
 
     if (res != -1) {
         answer = res;
@@ -139,6 +139,7 @@ void reversehashing (int sock) {
     } else {
         /* SHA 256 ALGO */
         printf("\nStarting the Reverse Hashing (Brute Force) Algorithm:\n");
+        printf("\nHEEEJSUCCESS\n");
         uint64_t answer = packet1.start;
         uint8_t theHash[32];
 
@@ -150,6 +151,7 @@ void reversehashing (int sock) {
 
             if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
                 insert(theHash, hashedNumber, NULL);
+
                 printf("Found a match, with:  %" PRIu64, answer);
                 break;
             }

@@ -201,7 +201,7 @@ void splay(Node *node) {
     root = node;
 }
 
-void insert(uint8_t *newHash, uint64_t value, struct Node *node) {
+void insert(uint8_t *newHash, char* value, struct Node *node) {
 
     if (!node ) {
         if (!root) {
