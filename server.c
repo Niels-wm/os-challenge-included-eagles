@@ -37,8 +37,8 @@ int main(int argc, char *argv[]) {
     }
 
     /* Disable safety feature */
-    // The operating system sets a timeout on TCP sockets after using them. 
-    // It does that to make sure that all information from the old program 
+    // The operating system sets a timeout on TCP sockets after using them.
+    // It does that to make sure that all information from the old program
     // is gone before starting a new one
     int option = 1;
     setsockopt(sockFileDescripter, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
     // bzero() is used to set all the socket structures with null values. It does the same thing as the following:
     // memset(&serverAddr, '\0', sizeof(serverAddr));
     bzero((char *)&serverAddr, sizeof(serverAddr));
-    
+
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(PORT);
     serverAddr.sin_addr.s_addr = INADDR_ANY;
@@ -70,10 +70,10 @@ int main(int argc, char *argv[]) {
 
     // Put the accept statement and the following code in an infinite loop
     while (1) {
-            
+
             /* Accept */
             newSockFileDescripter = accept(sockFileDescripter, (struct sockaddr *)&clientAddr, &clientAddrSize);
-            
+
             if (newSockFileDescripter < 0){
                 perror("ERROR on accept");
                 exit(1);
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
                 perror("ERROR on fork");
                 exit(1);
             }
-            
+
             if (pid == 0) {
                 /* This is the client process */
                 close(sockFileDescripter);
@@ -99,14 +99,12 @@ int main(int argc, char *argv[]) {
     }
 }
 
-Node *root;
-
 
 void reversehashing (int sock) {
     struct Packet packet1;
     int n, i;
 
-    printf("HEJEJ\n");
+
 
     /* Recive */
     bzero((char *)&packet1, sizeof(packet1));
@@ -121,7 +119,7 @@ void reversehashing (int sock) {
     packet1.start = be64toh(packet1.start);
     packet1.end = be64toh(packet1.end);
 
-    
+
     printf("Here are the received hash:\n");
     for (i = 0; i < 32; i++){
         printf("%0x", packet1.hash[i]);
@@ -129,16 +127,14 @@ void reversehashing (int sock) {
 
     printf("\nHere are the start:   %" PRIu64 "\n", packet1.start);
     printf("Here are the end:     %" PRIu64 "\n", packet1.end);
-    printf("Here aare the p:       %d\n", packet1.p);
+    printf("Here are the p:       %d\n", packet1.p);
 
     char* res = find(packet1.hash, NULL);
 
-    if (res != -1) {
-        printf("HEEEJSUCCESS\n");
-    } else {
+
         /* SHA 256 ALGO */
         printf("\nStarting the Reverse Hashing (Brute Force) Algorithm:\n");
-        printf("\nHEEEJSUCCESS\n");
+        printf("HEEEJSUCCESS\n");
         uint64_t answer = packet1.start;
         uint8_t theHash[32];
 
@@ -147,10 +143,8 @@ void reversehashing (int sock) {
             bzero(theHash, 32);
             unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
 
-
             if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
-                insert(theHash, hashedNumber, NULL);
-
+                // insert(theHash, hashedNumber, NULL);
                 printf("Found a match, with:  %" PRIu64, answer);
                 break;
             }
@@ -170,7 +164,5 @@ void reversehashing (int sock) {
             perror("ERROR writing to socket");
             exit(1);
         }
-    }
-
 
 }
