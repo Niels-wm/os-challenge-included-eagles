@@ -136,10 +136,23 @@ void reversehashing (int sock) {
 
     /* SHA 256 ALGO */
     printf("\nStarting the Reverse Hashing (Brute Force) Algorithm:\n");
-    uint64_t answer = packet1.start;
+    uint64_t answer = 54;
+    uint64_t answer2 = 5;
+
     uint8_t theHash[32];
+    uint8_t theHash2[32];
+    uint8_t theHash3[32];
+    uint8_t theHash4[32];
+
+    for (size_t i = 0; i < 32; i++) {
+      theHash[i] = i;
+    }
 
 
+    //insert(theHash, answer2, NULL);
+    //insert(theHash2, 10, NULL);
+    insert(packet1.hash, answer, NULL);
+    // insert(theHash4, 16, NULL);
     uint64_t *hej = find(packet1.hash, NULL);
 
     if (hej == NULL) {

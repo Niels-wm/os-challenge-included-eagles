@@ -8,8 +8,8 @@ typedef struct Node {
     struct Node *parent;
     struct Node *right;
     struct Node *left;
-    uint8_t hash[32];
-    uint64_t value;
+    uint8_t *hash;
+    uint64_t *value;
 } Node;
 
 struct Node *root;
@@ -201,7 +201,7 @@ void splay(Node *node) {
     root = node;
 }
 
-void insert(uint8_t *newHash, uint64_t value, struct Node *node) {
+void insert(uint8_t *newHash, uint64_t *value, struct Node *node) {
 
     if (!node) {
         if (!root) {
@@ -209,9 +209,11 @@ void insert(uint8_t *newHash, uint64_t value, struct Node *node) {
             root->parent = NULL;
             root->right = NULL;
             root->left = NULL;
-            for (int i = 0; i < 32; ++i) {
+
+/*            for (int i = 0; i < 32; ++i) {
                 root->hash[i] =  newHash[i];
-            }
+            }*/
+            root->hash = newHash;
             root->value = value;
             return;
         }
@@ -220,13 +222,14 @@ void insert(uint8_t *newHash, uint64_t value, struct Node *node) {
         return;
     }
 
-    if (node->hash > newHash) {
+    if (*node->hash > *newHash) {
         if (!node->left) {
             node->left = (Node *) malloc(sizeof(Node));
             node->left->parent = node;
-            for (int i = 0; i < 32; ++i) {
+            /*for (int i = 0; i < 32; ++i) {
                 node->left->hash[i] = newHash[i];
-            }
+            }*/
+            node->left->hash = newHash;
             node->left->value = value;
             splay(node->left);
         } else {
@@ -236,9 +239,10 @@ void insert(uint8_t *newHash, uint64_t value, struct Node *node) {
         if (!node->right) {
             node->right = (Node *) malloc(sizeof(Node));
             node->right->parent = node;
-            for (int i = 0; i < 32; ++i) {
-                node->right->hash[i] = newHash[i];
-            }
+//            for (int i = 0; i < 32; ++i) {
+//                node->right->hash[i] = newHash[i];
+//            }
+            node->right->hash = newHash;
             node->right->value = value;
             splay(node->right);
         } else {
@@ -249,37 +253,30 @@ void insert(uint8_t *newHash, uint64_t value, struct Node *node) {
 
 }
 
-uint64_t* find(uint8_t n[32], struct Node *node) {
+uint64_t *find(uint8_t *n, struct Node *node) {
 
     if (node == NULL) {
         if (root == NULL) {
             return NULL;
         }
         return find(n, root);
-
     }
 
-
-    if (memcmp(node->hash, n, sizeof(node->hash)) == 0) {
-        splay(node);
-        return &node->value;
-    }
-
-    if (node->hash > n) {
+    if (*node->hash < *n) {
         if (!node->right) {
             splay(node);
         } else {
-            find(n, node->right);
+            return find(n, node->right);
         }
-    } else if (node->hash < n) {
+    } else if (*node->hash > *n) {
         if (!node->left) {
             splay(node);
         } else {
-            find(n, node->left);
+            return find(n, node->left);
         }
     } else {
         splay(node);
-        return &node->value;
+        return node->value;
     }
 
     return NULL;
