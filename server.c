@@ -157,11 +157,11 @@ void reversehashing (int sock) {
         }
     }
 
-    printf("\nHere are the calculated hash:\n");
+    /*printf("\nHere are the calculated hash:\n");
     for (i = 0; i < 32; i++){
         printf("%0x", theHash[i]);
     }
-    printf("\n");
+    printf("\n");*/
 
 
     /* Send */
