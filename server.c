@@ -15,7 +15,7 @@
 
 #define PORT 5003
 
-void reversehashing (int sock);
+//uint64_t reversehashing (struct Packet packet1);
 
 struct Packet {
    uint8_t hash[32];
@@ -23,6 +23,87 @@ struct Packet {
    uint64_t end;
    uint8_t p;
 };
+
+uint64_t reversehashing (struct Packet packet1) {
+  int i;
+
+    // Reverse the start, end and p:
+    packet1.start = be64toh(packet1.start);
+    packet1.end = be64toh(packet1.end);
+
+
+    printf("Here are the received hash:\n");
+    for (i = 0; i < 32; i++){
+        printf("%0x", packet1.hash[i]);
+    }
+
+
+    printf("\nHere are the start:   %" PRIu64 "\n", packet1.start);
+    printf("Here are the end:     %" PRIu64 "\n", packet1.end);
+    printf("Here are the p:       %d\n", packet1.p);
+
+
+
+    /* SHA 256 ALGO */
+    printf("\nStarting the Reverse Hashing (Brute Force) Algorithm:\n");
+    uint64_t answer = packet1.start;
+    //uint64_t answer2 = 5;
+
+    uint8_t theHash[32];
+    //uint8_t theHash2[32];
+    //uint8_t theHash3[32];
+    //uint8_t theHash4[32];
+
+    //for (size_t i = 0; i < 32; i++) {
+  //    theHash[i] = i;
+  //  }
+
+
+    //insert(theHash, answer2, NULL);
+    //insert(theHash2, 10, NULL);
+    //insert(packet1.hash, answer, NULL);
+    // insert(theHash4, 16, NULL);
+    //uint64_t *hej = find(packet1.hash, NULL);
+
+
+
+    //if (hej == NULL) {
+      //printf("\n YOOO\n");
+      for (answer; answer <= packet1.end; answer++){
+
+          bzero(theHash, 32);
+          unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
+
+
+          if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
+              //insert(packet1.hash, answer, NULL);
+              printf("Found a match, with:  %" PRIu64, answer);
+              break;
+          }
+      }
+
+
+      printf("\nHere are the calculated hash:\n");
+      for (i = 0; i < 32; i++){
+          printf("%0x", theHash[i]);
+      }
+      printf("\n");
+
+      /* Send */
+      return answer;
+    //} else {
+      /*printf("\n GOTEM \n" );
+      answer = htobe64(*hej);
+      n = write(sock, &answer ,8);
+
+      if(n < 0) {
+          perror("ERROR writing to socket");
+          exit(1);
+      }*/
+    //}
+
+
+}
 
 int main(int argc, char *argv[]) {
     int sockFileDescripter, newSockFileDescripter;
@@ -66,7 +147,7 @@ int main(int argc, char *argv[]) {
     listen(sockFileDescripter, 5);
     clientAddrSize = sizeof(clientAddr);
 
-
+    struct Packet packet1;
 
 
 
@@ -81,121 +162,40 @@ int main(int argc, char *argv[]) {
                 exit(1);
             }
 
-            /* Create child process */
-            pid = fork();
+            /* Recive */
+            bzero((char *)&packet1, sizeof(packet1));
+            n = read(newSockFileDescripter, &packet1, sizeof(packet1));
 
-            if (pid < 0) {
-                perror("ERROR on fork");
+            if (n < 0) {
+                perror("ERROR reading from socket");
                 exit(1);
             }
 
-            if (pid == 0) {
-                /* This is the client process */
-                close(sockFileDescripter);
-                reversehashing(newSockFileDescripter);
-                exit(0);
-            } else {
-                close(newSockFileDescripter);
-            }
+            /* Create child process */
+            // pid = fork();
+            //
+            // if (pid < 0) {
+            //     perror("ERROR on fork");
+            //     exit(1);
+            // }
+            //
+            // if (pid == 0) {
+            //     /* This is the client process */
+            //     close(sockFileDescripter);
+                uint64_t answer = reversehashing(packet1);
+
+                answer = htobe64(answer);
+                n = write(newSockFileDescripter, &answer ,8);
+
+                if(n < 0) {
+                    perror("ERROR writing to socket");
+                    exit(1);
+                }
+
+                // exit(0);
+            // } else {
+                // close(newSockFileDescripter);
+            // }
 
     }
-}
-
-
-
-void reversehashing (int sock) {
-    struct Packet packet1;
-    int n, i;
-
-
-    /* Recive */
-    bzero((char *)&packet1, sizeof(packet1));
-    n = read(sock, &packet1, sizeof(packet1));
-
-    if (n < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
-    }
-
-    // Reverse the start, end and p:
-    packet1.start = be64toh(packet1.start);
-    packet1.end = be64toh(packet1.end);
-
-
-    printf("Here are the received hash:\n");
-    for (i = 0; i < 32; i++){
-        printf("%0x", packet1.hash[i]);
-    }
-
-
-    printf("\nHere are the start:   %" PRIu64 "\n", packet1.start);
-    printf("Here are the end:     %" PRIu64 "\n", packet1.end);
-    printf("Here are the p:       %d\n", packet1.p);
-
-
-
-    /* SHA 256 ALGO */
-    printf("\nStarting the Reverse Hashing (Brute Force) Algorithm:\n");
-    uint64_t answer = 54;
-    uint64_t answer2 = 5;
-
-    uint8_t theHash[32];
-    uint8_t theHash2[32];
-    uint8_t theHash3[32];
-    uint8_t theHash4[32];
-
-    for (size_t i = 0; i < 32; i++) {
-      theHash[i] = i;
-    }
-
-
-    //insert(theHash, answer2, NULL);
-    //insert(theHash2, 10, NULL);
-    insert(packet1.hash, answer, NULL);
-    // insert(theHash4, 16, NULL);
-    uint64_t *hej = find(packet1.hash, NULL);
-
-    if (hej == NULL) {
-      printf("\n YOOO\n");
-      for (answer; answer <= packet1.end; answer++){
-
-          bzero(theHash, 32);
-          unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
-
-
-          if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
-              insert(packet1.hash, answer, NULL);
-              printf("Found a match, with:  %" PRIu64, answer);
-              break;
-          }
-      }
-
-
-      printf("\nHere are the calculated hash:\n");
-      for (i = 0; i < 32; i++){
-          printf("%0x", theHash[i]);
-      }
-      printf("\n");
-
-      /* Send */
-      answer = htobe64(answer);
-      n = write(sock, &answer ,8);
-
-      if(n < 0) {
-          perror("ERROR writing to socket");
-          exit(1);
-      }
-    } else {
-      printf("\n GOTEM \n" );
-      answer = htobe64(*hej);
-      n = write(sock, &answer ,8);
-
-      if(n < 0) {
-          perror("ERROR writing to socket");
-          exit(1);
-      }
-
-    }
-
-
 }
