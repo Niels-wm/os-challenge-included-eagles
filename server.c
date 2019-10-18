@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "messages.h"
+#include "Packet.h"
+#include "reversehashing.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -9,19 +11,8 @@
 #include <netinet/in.h>
 
 #include <string.h>
-#include <inttypes.h>
 
 #define PORT 5003
-
-void reversehashing (struct Packet packet1, int sock);
-
-    struct Packet
-{
-    uint8_t hash[32];
-    uint64_t start;
-    uint64_t end;
-    uint8_t p;
-};
 
 int main(int argc, char *argv[]) {
     int sockFileDescripter, newSockFileDescripter;
@@ -66,7 +57,6 @@ int main(int argc, char *argv[]) {
     clientAddrSize = sizeof(clientAddr);
 
 
-
     // Put the accept statement and the following code in an infinite loop
     while (1) {
 
@@ -82,8 +72,8 @@ int main(int argc, char *argv[]) {
             }
 
             /* Receive */
-            bzero((char *)&packet1, sizeof(packet1));
-            n = read(newSockFileDescripter, &packet1, sizeof(packet1));
+            bzero((char *)&packet, sizeof(packet));
+            n = read(newSockFileDescripter, &packet, sizeof(packet));
 
             if (n < 0) {
                 perror("ERROR reading from socket");
@@ -122,54 +112,9 @@ int main(int argc, char *argv[]) {
                 reversehashing(packet, newSockFileDescripter);
                 exit(0);
             } else {
+                /* This is the parent process */
                 close(newSockFileDescripter);
             }
 
-    }
-}
-
-
-
-void reversehashing (struct Packet packet1, int sock) {
-    struct Packet packet1;
-    int n, i;
-
-    printf("Here are the received hash:\n");
-    for (i = 0; i < 32; i++){
-        printf("%0x", packet1.hash[i]);
-    }
-
-    /* SHA 256 ALGO */ 
-    printf("\nStarting the Reverse Hashing (Brute Force) Algorithm:\n");
-    uint64_t answer = packet1.start;
-    uint8_t theHash[32];
-
-    for (answer; answer <= packet1.end; answer++){
-
-        bzero(theHash, 32);
-        unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
-
-
-        if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
-            printf("Found a match, with:  %" PRIu64, answer);
-            break;
-        }
-    }
-
-    
-    printf("\nHere are the calculated hash:\n");
-    for (i = 0; i < 32; i++){
-        printf("%0x", theHash[i]);
-    }
-    printf("\n");
-
-
-    /* Send */
-    answer = htobe64(answer);
-    n = write(sock, &answer ,8);
-
-    if(n < 0) {
-        perror("ERROR writing to socket");
-        exit(1);
     }
 }
