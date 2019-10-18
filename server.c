@@ -13,13 +13,14 @@
 
 #define PORT 5003
 
-void reversehashing (int sock);
+void reversehashing (struct Packet packet1, int sock);
 
-struct Packet {
-   uint8_t hash[32];
-   uint64_t start;
-   uint64_t end;
-   uint8_t p;
+    struct Packet
+{
+    uint8_t hash[32];
+    uint64_t start;
+    uint64_t end;
+    uint8_t p;
 };
 
 int main(int argc, char *argv[]) {
@@ -68,7 +69,10 @@ int main(int argc, char *argv[]) {
 
     // Put the accept statement and the following code in an infinite loop
     while (1) {
-            
+
+            struct Packet packet;
+            int n;
+
             /* Accept */
             newSockFileDescripter = accept(sockFileDescripter, (struct sockaddr *)&clientAddr, &clientAddrSize);
             
@@ -76,6 +80,33 @@ int main(int argc, char *argv[]) {
                 perror("ERROR on accept");
                 exit(1);
             }
+
+            /* Receive */
+            bzero((char *)&packet1, sizeof(packet1));
+            n = read(newSockFileDescripter, &packet1, sizeof(packet1));
+
+            if (n < 0) {
+                perror("ERROR reading from socket");
+                exit(1);
+            }
+
+            // Reverse the start, end and p:
+            packet.start = be64toh(packet.start);
+            packet.end = be64toh(packet.end);
+
+            printf("\nStart:   %" PRIu64 "\n", packet.start);
+            printf("End:     %" PRIu64 "\n", packet.end);
+            printf("P:       %d\n", packet.p);
+
+            // -- CHECK IF RECEIVED HASH IS A KNOWN HASH (IN HASHTABLE) AND SEND ANSWER TO CLIENT IF IT IS:
+
+
+
+            // -- IMPLEMENT THE SCHEDULER HERE:
+
+
+
+            // -- POP THE MOST IMPORTANT PACKET AND NEWSOCKFILEDESCRIPTER HERE:
 
             /* Create child process */
             pid = fork();
@@ -88,7 +119,7 @@ int main(int argc, char *argv[]) {
             if (pid == 0) {
                 /* This is the client process */
                 close(sockFileDescripter);
-                reversehashing(newSockFileDescripter);
+                reversehashing(packet, newSockFileDescripter);
                 exit(0);
             } else {
                 close(newSockFileDescripter);
@@ -99,35 +130,14 @@ int main(int argc, char *argv[]) {
 
 
 
-void reversehashing (int sock) {
+void reversehashing (struct Packet packet1, int sock) {
     struct Packet packet1;
     int n, i;
 
-
-    /* Recive */
-    bzero((char *)&packet1, sizeof(packet1));
-    n = read(sock, &packet1, sizeof(packet1));
-
-    if (n < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
-    }
-
-    // Reverse the start, end and p:
-    packet1.start = be64toh(packet1.start);
-    packet1.end = be64toh(packet1.end);
-
-    
     printf("Here are the received hash:\n");
     for (i = 0; i < 32; i++){
         printf("%0x", packet1.hash[i]);
     }
-
-    printf("\nHere are the start:   %" PRIu64 "\n", packet1.start);
-    printf("Here are the end:     %" PRIu64 "\n", packet1.end);
-    printf("Here are the p:       %d\n", packet1.p);
-
-
 
     /* SHA 256 ALGO */ 
     printf("\nStarting the Reverse Hashing (Brute Force) Algorithm:\n");
