@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "messages.h"
-#include "Packet.h"
+#include "packet.h"
 #include "reversehashing.h"
 
 #include <sys/types.h>
