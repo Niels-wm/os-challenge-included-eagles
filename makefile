@@ -6,5 +6,7 @@ LIBS = -lcrypto
 
 
 all:
-	${CC} ${CFLAGS} -o server server.c ${LIBS}
+	${CC} ${CFLAGS} -o server server.c reversehashing.c ${LIBS}
 
+clean:
+	rm -f server
