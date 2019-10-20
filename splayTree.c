@@ -2,6 +2,7 @@
 #include "stdlib.h"
 #include <inttypes.h>
 #include "string.h"
+#include <sys/mman.h>
 
 
 typedef struct Node {
@@ -9,15 +10,12 @@ typedef struct Node {
     struct Node *right;
     struct Node *left;
     uint8_t *hash;
-    uint64_t *value;
+    uint64_t value;
 } Node;
 
-struct Node *root;
+Node *root = NULL;
 
 void splay(Node *node) {
-    if (node == root) {
-        return;
-    }
     Node *p = node->parent;
     if (!p) {
         return;
@@ -28,15 +26,15 @@ void splay(Node *node) {
     Node *right = node->right;
 
     // Zig operation
-    if (p == root) {
+    if (!pp) {
         if (p->left == node) {
-            if (pp != NULL) {
+            /*if (pp != NULL) {
                 if (pp->left == pp) {
                     pp->left = node;
                 } else {
                     pp->right = node;
                 }
-            }
+            }*/
             if (node->right != NULL) {
                 p->left = node->right;
                 p->left->parent = p;
@@ -49,13 +47,13 @@ void splay(Node *node) {
             node->right->parent = node;
 
         } else {
-            if (pp != NULL) {
+            /*if (pp != NULL) {
                 if (pp->right == pp) {
                     pp->right = node;
                 } else {
                     pp->left = node;
                 }
-            }
+            }*/
             if (node->left != NULL) {
                 p->right = node->left;
                 p->right->parent = p;
@@ -198,14 +196,14 @@ void splay(Node *node) {
         }
         splay(node);
     }
-    root = node;
+//    root = node;
 }
 
-void insert(uint8_t *newHash, uint64_t *value, struct Node *node) {
+void insert(uint8_t *newHash, uint64_t value, struct Node *node) {
 
     if (!node) {
         if (!root) {
-            root = (Node *) malloc(sizeof(Node));
+            root = (Node *) mmap(NULL, sizeof(Node), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
             root->parent = NULL;
             root->right = NULL;
             root->left = NULL;
@@ -222,45 +220,55 @@ void insert(uint8_t *newHash, uint64_t *value, struct Node *node) {
         return;
     }
 
+/*    if (!node) {
+        node = (Node *) mmap(NULL, sizeof(Node), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+        node->parent = NULL;
+        node->right = NULL;
+        node->left = NULL;
+        node->hash = newHash;
+        node->value = value;
+        root = node;
+        return;
+    }*/
+
     if (*node->hash > *newHash) {
         if (!node->left) {
-            node->left = (Node *) malloc(sizeof(Node));
+            node->left = (Node *) mmap(NULL, sizeof(Node), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
             node->left->parent = node;
             /*for (int i = 0; i < 32; ++i) {
                 node->left->hash[i] = newHash[i];
             }*/
             node->left->hash = newHash;
             node->left->value = value;
+            root = node->left;
             splay(node->left);
         } else {
             insert(newHash, value, node->left);
         }
     } else {
         if (!node->right) {
-            node->right = (Node *) malloc(sizeof(Node));
+            node->right = (Node *) mmap(NULL, sizeof(Node), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
             node->right->parent = node;
 //            for (int i = 0; i < 32; ++i) {
 //                node->right->hash[i] = newHash[i];
 //            }
             node->right->hash = newHash;
             node->right->value = value;
+            root = node->right;
             splay(node->right);
         } else {
             insert(newHash, value, node->right);
         }
     }
-
-
 }
 
-uint64_t *find(uint8_t *n, struct Node *node) {
+uint64_t find(uint8_t *n, struct Node *node) {
 
-    if (node == NULL) {
-        if (root == NULL) {
-            return NULL;
-        }
+    if (!root)
+        return 0;
+
+    if (!node)
         return find(n, root);
-    }
 
     if (*node->hash < *n) {
         if (!node->right) {
@@ -279,5 +287,5 @@ uint64_t *find(uint8_t *n, struct Node *node) {
         return node->value;
     }
 
-    return NULL;
+    return 0;
 }
