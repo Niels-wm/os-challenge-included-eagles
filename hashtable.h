@@ -3,7 +3,12 @@
 
 #include <stdint.h>
 
-void insert(uint64_t key, uint8_t value[]);
-void find(uint64_t key);
+void insert(uint8_t *key, uint64_t value);
+uint64_t find(uint8_t *key);
+
+typedef struct HashInfo {
+   uint8_t hash[32];
+   uint64_t value;
+} HashInfo;
 
 #endif //HASHTABLE_H

@@ -1,11 +1,12 @@
 #include "packet.h"
 #include "messages.h"
+#include "hashtable.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-void reversehashing (struct Packet packet1, int sock) {
+void reversehashing (struct Packet packet1, int sock, HashInfo* info) {
     int i, n;
 
     printf("Received hash:\n");
@@ -13,7 +14,7 @@ void reversehashing (struct Packet packet1, int sock) {
         printf("%0x", packet1.hash[i]);
     }
 
-    /* SHA 256 ALGO */ 
+    /* SHA 256 ALGO */
     uint64_t answer = packet1.start;
     uint8_t theHash[32];
 
@@ -22,14 +23,13 @@ void reversehashing (struct Packet packet1, int sock) {
         bzero(theHash, 32);
         unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
 
-
         if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
             printf("\nFound a match, with:  %" PRIu64, answer);
             break;
         }
     }
 
-    
+
     printf("\nCalculated hash:\n");
     for (i = 0; i < 32; i++){
         printf("%0x", theHash[i]);
@@ -38,6 +38,10 @@ void reversehashing (struct Packet packet1, int sock) {
 
 
     /* Send */
+    info->value = answer;
+    for (size_t i = 0; i < 32; i++) {
+      info->hash[i] = packet1.hash[i];
+    }
     answer = htobe64(answer);
     n = write(sock, &answer, 8);
 
