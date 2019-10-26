@@ -6,6 +6,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <pthread.h>
 
 #include <netdb.h>
 #include <netinet/in.h>
@@ -18,8 +19,8 @@ int main(int argc, char *argv[]) {
     int sockFileDescripter, newSockFileDescripter;
     struct sockaddr_in serverAddr, clientAddr;
     socklen_t clientAddrSize;
-    int n, i, pid;
-
+    int n, i, pid, err;
+    //pthread_t thread;
 
     sockFileDescripter = socket(AF_INET, SOCK_STREAM, 0);
     if (sockFileDescripter < 0) {
@@ -51,18 +52,15 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-
     /* Listen */
-    listen(sockFileDescripter, 10);
+    listen(sockFileDescripter, 50);
     clientAddrSize = sizeof(clientAddr);
 
-
+    pthread_t tid[60];
+    i = 0;
     // Put the accept statement and the following code in an infinite loop
     while (1) {
-
-            struct Packet packet;
-            int n;
-
+            printf("\nHere are the i: %d", i);
             /* Accept */
             newSockFileDescripter = accept(sockFileDescripter, (struct sockaddr *)&clientAddr, &clientAddrSize);
             
@@ -71,50 +69,22 @@ int main(int argc, char *argv[]) {
                 exit(1);
             }
 
-            /* Receive */
-            bzero((char *)&packet, sizeof(packet));
-            n = read(newSockFileDescripter, &packet, sizeof(packet));
-
-            if (n < 0) {
-                perror("ERROR reading from socket");
-                exit(1);
-            }
-
-            // Reverse the start, end and p:
-            packet.start = be64toh(packet.start);
-            packet.end = be64toh(packet.end);
-
-            printf("\nStart:   %" PRIu64 "\n", packet.start);
-            printf("End:     %" PRIu64 "\n", packet.end);
-            printf("P:       %d\n", packet.p);
-
-            // -- CHECK IF RECEIVED HASH IS A KNOWN HASH (IN HASHTABLE) AND SEND ANSWER TO CLIENT IF IT IS:
-
-
-
-            // -- IMPLEMENT THE SCHEDULER HERE:
-
-
-
-            // -- POP THE MOST IMPORTANT PACKET AND NEWSOCKFILEDESCRIPTER HERE:
-
-            /* Create child process */
-            pid = fork();
-
-            if (pid < 0) {
-                perror("ERROR on fork");
-                exit(1);
-            }
+            // For each client request creates a thread and assign the request to it to process
+            err = pthread_create(&tid[i], NULL, reversehashing, &newSockFileDescripter);
             
-            if (pid == 0) {
-                /* This is the client process */
-                close(sockFileDescripter);
-                reversehashing(packet, newSockFileDescripter);
-                exit(0);
-            } else {
-                /* This is the parent process */
-                close(newSockFileDescripter);
+            if (err != 0) {
+                perror("ERROR creating thread");
+                exit(1);
+            }
+            if (i >= 50) {
+                i = 0;
+                while (i < 50) {
+                    i++;
+                    pthread_join(tid[i], NULL);
+                }
+                i = 0;
             }
 
+            i++;
     }
 }

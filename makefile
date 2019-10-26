@@ -2,7 +2,7 @@
 
 CFLAG = -Wall -g
 CC = gcc
-LIBS = -lcrypto
+LIBS = -lcrypto -pthread
 
 
 all:
