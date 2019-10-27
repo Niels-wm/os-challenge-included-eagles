@@ -7,16 +7,20 @@
 #include <pthread.h>
 
 struct Packet packet;
+typedef struct ThreadInfo {
+   int fs;
+   int* threadAmount;
+} ThreadInfo;
 pthread_mutex_t lock;
 
 void *reversehashing(void *arg) {
     int i, n;
-    int newSockFileDescripter = *((int *)arg);
+    ThreadInfo* threadInfo = (ThreadInfo*)arg;
     pthread_mutex_lock(&lock);
 
     /* Receive */
     bzero((char *)&packet, sizeof(packet));
-    n = read(newSockFileDescripter, &packet, sizeof(packet));
+    n = read(threadInfo->fs, &packet, sizeof(packet));
 
     if (n < 0)
     {
@@ -38,7 +42,7 @@ void *reversehashing(void *arg) {
         printf("%0x", packet.hash[i]);
     }
 
-    // /* SHA 256 ALGO */ 
+    // /* SHA 256 ALGO */
     uint64_t answer = packet.start;
     uint8_t theHash[32];
 
@@ -64,14 +68,14 @@ void *reversehashing(void *arg) {
     /* Send */
     printf("test2\n");
     answer = htobe64(answer);
-    n = write(newSockFileDescripter, &answer, 8);
+    n = write(threadInfo->fs, &answer, 8);
 
     if(n < 0) {
         perror("ERROR writing to socket");
         exit(1);
     }
-    
-    close(newSockFileDescripter);
+
+    close(threadInfo->fs);
     pthread_mutex_unlock(&lock);
     pthread_exit(NULL);
 }
