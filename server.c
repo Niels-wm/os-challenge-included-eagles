@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <pthread.h>
+#include "threadinfo.h"
 
 #include <netdb.h>
 #include <netinet/in.h>
@@ -14,19 +15,19 @@
 #include <string.h>
 
 #define PORT 5003
+#define THREAD_AMOUNT 10
 
-typedef struct ThreadInfo {
-   int fs;
-   int* threadAmount;
-} ThreadInfo;
-
-int threadAmount = 0;
+int* threadAmount;
+pthread_mutex_t* lock;
+struct Packet packets[100];
 
 int main(int argc, char *argv[]) {
     int sockFileDescripter, newSockFileDescripter;
     struct sockaddr_in serverAddr, clientAddr;
     socklen_t clientAddrSize;
     int n, i, pid, err;
+    lock = malloc(sizeof(pthread_mutex_t));
+    pthread_mutex_init(lock, NULL);
 
     //pthread_t thread;
 
@@ -64,11 +65,12 @@ int main(int argc, char *argv[]) {
     listen(sockFileDescripter, 50);
     clientAddrSize = sizeof(clientAddr);
 
-    pthread_t tid[60];
     i = 0;
-    // Put the accept statement and the following code in an infinite loop
+    pthread_t tid[THREAD_AMOUNT];
+
+    // // Put the accept statement and the following code in an infinite loop
     while (1) {
-            printf("\nHere are the i: %d", i);
+            // printf("\nHere are the i: %d", i);
             /* Accept */
             newSockFileDescripter = accept(sockFileDescripter, (struct sockaddr *)&clientAddr, &clientAddrSize);
 
@@ -76,27 +78,18 @@ int main(int argc, char *argv[]) {
                 perror("ERROR on accept");
                 exit(1);
             }
-            ThreadInfo threadInfo;
-            threadInfo.fs = newSockFileDescripter;
-            threadInfo.threadAmount = &threadAmount;
-            threadAmount += 1;
-
+            ThreadInfo* ti = malloc(sizeof(ThreadInfo));
+            ti->fs = newSockFileDescripter;
+            ti->lock = lock;
             // For each client request creates a thread and assign the request to it to process
-            err = pthread_create(&tid[i], NULL, reversehashing, &threadInfo);
-
+            err = pthread_create(&tid[i%THREAD_AMOUNT], NULL, reversehashing, ti);
             if (err != 0) {
                 perror("ERROR creating thread");
                 exit(1);
             }
-            if (i >= 50) {
-                i = 0;
-                while (i < 50) {
-                    i++;
-                    pthread_join(tid[i], NULL);
-                }
-                i = 0;
+            if (i>=(THREAD_AMOUNT-1)) {
+              pthread_join(tid[(i+1)%THREAD_AMOUNT], NULL);
             }
-
             i++;
     }
 }
