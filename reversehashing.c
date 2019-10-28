@@ -8,25 +8,18 @@
 #include "threadinfo.h"
 #include "hashtable.h"
 
-
-// int threadPacketCount = 0;
-
-// void *findAnswerPartial(void *arg) {
-//   int *start = (int*)arg;
-//   for (size_t i = start; i < (start + threadPacketCount); i++) {
-//     /* code */
-//   }
-//
-//   pthread_exit(NULL);
-// }
-
 void *reversehashing(void *arg) {
-    ThreadInfo* ti = (ThreadInfo*)arg;
+
+    struct Packet packet;
+    struct ThreadInfo *ti = (struct ThreadInfo*) arg;
+
+
     uint8_t testHash[32];
     pthread_mutex_t* lock = (ti->lock);
     int fs = ti->fs;
-    struct Packet packet;
     int i, n;
+
+
 
     /* Receive */
     bzero((char *)&packet, sizeof(packet));
@@ -55,9 +48,6 @@ void *reversehashing(void *arg) {
     bzero(testHash, 32);
     SHA256((char*) &foundAnswer, 8, testHash);
 
-    // -- IMPLEMENT THE SCHEDULER HERE:
-
-    // -- POP THE MOST IMPORTANT PACKET AND NEWSOCKFILEDESCRIPTER HERE:
 
     if (foundAnswer != 0 && memcmp(testHash, packet.hash, sizeof(testHash)) == 0){
       printf("\nFOUND in hashtable\n");
@@ -76,22 +66,26 @@ void *reversehashing(void *arg) {
         unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
 
         if (memcmp(theHash, packet.hash, sizeof(theHash)) == 0) {
-          printf("\nFound a match, with:  %" PRIu64, answer);
+          //printf("\nFound a match, with:  %" PRIu64, answer);
           break;
         }
       }
       pthread_mutex_lock(lock);
       insert(packet.hash, answer);
       pthread_mutex_unlock(lock);
+      
       answer = htobe64(answer);
       n = write(fs, &answer, 8);
-
+      
       if(n < 0) {
           perror("ERROR writing to socket");
           exit(1);
       }
     }
-    free(ti);
+
     close(fs);
+
+    free(ti);
     pthread_exit(NULL);
+    return NULL;
 }
