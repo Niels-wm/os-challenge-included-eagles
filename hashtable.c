@@ -10,8 +10,9 @@ uint64_t hashArray[SIZE] = {0};
 
 uint8_t hashIndex(const uint8_t *key) {
     uint8_t index = 0;
-
-    for (int i = 0; i < HASH_SIZE; ++i) {
+    
+    int i;
+    for (i = 0; i < HASH_SIZE; ++i) {
         index += key[i];
     }
 
