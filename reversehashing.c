@@ -1,4 +1,4 @@
-#include "Packet.h"
+#include "packet.h"
 #include "messages.h"
 
 #include <stdio.h>
