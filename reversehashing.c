@@ -6,13 +6,14 @@
 #include <string.h>
 #include <pthread.h>
 
-struct Packet packet;
-pthread_mutex_t lock;
-
 void *reversehashing(void *arg) {
+    
+    struct Packet packet;
+    struct arg_struct *args = (struct arg_struct *) arg;
+
+    int newSockFileDescripter = args -> fileDescripter;
     int i, n;
-    int newSockFileDescripter = *((int *)arg);
-    pthread_mutex_lock(&lock);
+
 
     /* Receive */
     bzero((char *)&packet, sizeof(packet));
@@ -28,15 +29,15 @@ void *reversehashing(void *arg) {
     packet.start = be64toh(packet.start);
     packet.end = be64toh(packet.end);
 
-    printf("\nStart:   %" PRIu64 "\n", packet.start);
-    printf("End:     %" PRIu64 "\n", packet.end);
-    printf("P:       %d\n", packet.p);
+    // printf("\nStart:   %" PRIu64 "\n", packet.start);
+    // printf("End:     %" PRIu64 "\n", packet.end);
+    // printf("P:       %d\n", packet.p);
 
 
-    printf("Received hash:\n");
-    for (i = 0; i < 32; i++){
-        printf("%0x", packet.hash[i]);
-    }
+    // printf("Received hash:\n");
+    // for (i = 0; i < 32; i++){
+    //     printf("%0x", packet.hash[i]);
+    // }
 
     // /* SHA 256 ALGO */ 
     uint64_t answer = packet.start;
@@ -49,20 +50,18 @@ void *reversehashing(void *arg) {
 
 
         if (memcmp(theHash, packet.hash, sizeof(theHash)) == 0) {
-            printf("\nFound a match, with:  %" PRIu64, answer);
+            // printf("\nFound a match, with:  %" PRIu64, answer);
             break;
         }
     }
 
-    printf("\nCalculated hash:\n");
-    for (i = 0; i < 32; i++){
-        printf("%0x", theHash[i]);
-    }
-    printf("\n");
-
+    // printf("\nCalculated hash:\n");
+    // for (i = 0; i < 32; i++){
+    //     printf("%0x", theHash[i]);
+    // }
+    // printf("\n");
 
     /* Send */
-    printf("test2\n");
     answer = htobe64(answer);
     n = write(newSockFileDescripter, &answer, 8);
 
@@ -72,6 +71,8 @@ void *reversehashing(void *arg) {
     }
     
     close(newSockFileDescripter);
-    pthread_mutex_unlock(&lock);
+    
+    free(args);
     pthread_exit(NULL);
+    return NULL;
 }

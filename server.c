@@ -14,13 +14,17 @@
 #include <string.h>
 
 #define PORT 5003
+#define NTHREADS 50
+
 
 int main(int argc, char *argv[]) {
     int sockFileDescripter, newSockFileDescripter;
     struct sockaddr_in serverAddr, clientAddr;
     socklen_t clientAddrSize;
-    int n, i, pid, err;
-    //pthread_t thread;
+    int n, i, err;
+    i = 0;
+    pthread_t thread_id[NTHREADS];
+
 
     sockFileDescripter = socket(AF_INET, SOCK_STREAM, 0);
     if (sockFileDescripter < 0) {
@@ -56,11 +60,8 @@ int main(int argc, char *argv[]) {
     listen(sockFileDescripter, 50);
     clientAddrSize = sizeof(clientAddr);
 
-    pthread_t tid[60];
-    i = 0;
     // Put the accept statement and the following code in an infinite loop
     while (1) {
-            printf("\nHere are the i: %d", i);
             /* Accept */
             newSockFileDescripter = accept(sockFileDescripter, (struct sockaddr *)&clientAddr, &clientAddrSize);
             
@@ -69,22 +70,26 @@ int main(int argc, char *argv[]) {
                 exit(1);
             }
 
+            printf("New Client Request with ID: %d\n", i);
+
+
             // For each client request creates a thread and assign the request to it to process
-            err = pthread_create(&tid[i], NULL, reversehashing, &newSockFileDescripter);
-            
+            struct arg_struct *args = malloc(sizeof(struct arg_struct));
+            args -> fileDescripter = newSockFileDescripter;
+
+
+            printf("Starting thread_id[%d]\n", ((i)%NTHREADS));
+            err = pthread_create(&thread_id[i%NTHREADS] , NULL, reversehashing, args);
+
             if (err != 0) {
                 perror("ERROR creating thread");
                 exit(1);
             }
-            if (i >= 50) {
-                i = 0;
-                while (i < 50) {
-                    i++;
-                    pthread_join(tid[i], NULL);
-                }
-                i = 0;
-            }
 
+            if (i >= NTHREADS-1) {
+                printf("Waiting for thread_id[%d]\n", ((i+1)%NTHREADS));
+                pthread_join(thread_id[(i+1)%NTHREADS], NULL);
+            }
             i++;
     }
 }
