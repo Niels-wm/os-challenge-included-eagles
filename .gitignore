@@ -51,7 +51,9 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# Idea files 
+server
+
+# Idea files
 .idea/*
 
 # Hidden system files
