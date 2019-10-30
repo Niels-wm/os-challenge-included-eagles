@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "messages.h"
 #include "packet.h"
 #include "reversehashing.h"
@@ -7,32 +8,40 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
+#include <pthread.h>
+#include <sched.h>
+
 #include <netdb.h>
 #include <netinet/in.h>
 
 #include <string.h>
 
-#include "node.h"
-#include "priorityQueue.h"
-
 #define PORT 5003
+#define NTHREADS 50
 
-float getScoreAlgo(struct Packet packet);
+// Scheduler Policy: Round-Robin(RR), FIFO(FIFO).
+int policy = SCHED_FIFO;
 
 int main(int argc, char *argv[]) {
     int sockFileDescripter, newSockFileDescripter;
+    int priority_min, priority_max;
     struct sockaddr_in serverAddr, clientAddr;
     socklen_t clientAddrSize;
-    int n, i, pid;
-    float pScore = 0.0;
-    struct Node *pq;
-
+    int n, err;
+    int i = 0;
+    pthread_t thread_id[NTHREADS];
 
     sockFileDescripter = socket(AF_INET, SOCK_STREAM, 0);
     if (sockFileDescripter < 0) {
         perror("ERROR opening socket");
         exit(1);
     }
+    int j;
+    for (j = 0; j < 10000; j++)
+    {
+        int a = 2+2;
+    }
+    
 
     /* Disable safety feature */
     // The operating system sets a timeout on TCP sockets after using them. 
@@ -41,10 +50,7 @@ int main(int argc, char *argv[]) {
     int option = 1;
     setsockopt(sockFileDescripter, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
 
-
     /* Initialize socket structure */
-    // bzero() is used to set all the socket structures with null values. It does the same thing as the following:
-    // memset(&serverAddr, '\0', sizeof(serverAddr));
     bzero((char *)&serverAddr, sizeof(serverAddr));
     
     serverAddr.sin_family = AF_INET;
@@ -60,20 +66,20 @@ int main(int argc, char *argv[]) {
 
 
     /* Listen */
-    listen(sockFileDescripter, 10);
+    listen(sockFileDescripter, 50);
     clientAddrSize = sizeof(clientAddr);
-
 
     // Put the accept statement and the following code in an infinite loop
     while (1) {
-
             struct Packet packet;
-            int n;
+            
+            pthread_attr_t tattr;
+            struct sched_param param;
 
             /* Accept */
             newSockFileDescripter = accept(sockFileDescripter, (struct sockaddr *)&clientAddr, &clientAddrSize);
-
-            if (newSockFileDescripter < 0){
+            
+            if (newSockFileDescripter < 0) {
                 perror("ERROR on accept");
                 exit(1);
             }
@@ -87,66 +93,46 @@ int main(int argc, char *argv[]) {
                 exit(1);
             }
 
-            // Reverse the start, end and p:
+            // Reverse the start and end
             packet.start = be64toh(packet.start);
             packet.end = be64toh(packet.end);
 
-            // printf("\nStart:   %" PRIu64 "\n", packet.start);
-            // printf("End:     %" PRIu64 "\n", packet.end);
-            // printf("P:       %d\n", packet.p);
+            // Thread priority
+            // Max thread priority (RR) is 99. 99/16 ~ 6
+            param.sched_priority = (int) packet.p * 6;
 
-            // -- CHECK IF RECEIVED HASH IS A KNOWN HASH (IN HASHTABLE) AND SEND ANSWER TO CLIENT IF IT IS:
-
-
-
-            // -- ALGO
-            
-            // pScore = getScoreAlgo(packet);
-            // printf("Score:       %f\n", pScore);
-
-            // -- IMPLEMENT THE SCHEDULER HERE:
-
-            if (isEmpty(&pq)){
-                pq = createNewNode(packet, packet.p, newSockFileDescripter);
-            } else {
-                push(&pq, packet, packet.p, newSockFileDescripter);
+            err = pthread_attr_init(&tattr);
+            if (err != 0){
+                perror("Error initializing thread attributes");
             }
 
-            // -- POP THE MOST IMPORTANT PACKET AND NEWSOCKFILEDESCRIPTER HERE:
+            err = pthread_attr_setschedpolicy(&tattr, policy);
+            if (err != 0) {
+                perror("Error setting thread schedule policy");
+            }
 
-            struct Node node1 = peek(&pq);
-            pop(&pq);
+            err = pthread_attr_setschedparam(&tattr, &param);
+            if (err != 0) {
+                perror("Error setting thread priority");
+            }
 
-            printf("\nfromQ Start:   %" PRIu64 "\n", node1.data.start);
-            printf("fromQ End:     %" PRIu64 "\n", node1.data.end);
-            printf("fromQ P:       %d\n", node1.data.p);
-            printf("fromQ fd:      %d\n", node1.fd);
+            // For each client request creates a thread and assign the request to it to process
+            struct arg_struct *args = malloc(sizeof(struct arg_struct));
+            args -> fileDescripter = newSockFileDescripter;
+            args -> packet = packet;
 
-            /* Create child process */
-            pid = fork();
+            printf("Starting thread_id[%d]\n", ((i)%NTHREADS));
 
-            if (pid < 0) {
-                perror("ERROR on fork");
+            err = pthread_create(&thread_id[i%NTHREADS], &tattr, reversehashing, args);
+            if (err != 0) {
+                perror("ERROR creating thread");
                 exit(1);
             }
-            
-            if (pid == 0) {
-                /* This is the client process */
-                close(sockFileDescripter);
-                reversehashing(node1.data, node1.fd);
-                exit(0);
-            } else {
-                /* This is the parent process */
-                close(newSockFileDescripter);
+
+            if (i >= NTHREADS-1) {
+                printf("Waiting for thread_id[%d]\n", ((i+1)%NTHREADS));
+                pthread_join(thread_id[(i+1)%NTHREADS], NULL);
             }
-
+            i++;
     }
-}
-
-float getScoreAlgo(struct Packet packet) {
-
-    float deltaT = packet.end - packet.start;
-    float score = ((float)packet.p/deltaT) * 10000000000;
-
-    return score;
 }

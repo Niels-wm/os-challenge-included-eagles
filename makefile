@@ -2,11 +2,11 @@
 
 CFLAG = -Wall -g
 CC = gcc
-LIBS = -lcrypto
+LIBS = -lcrypto -pthread
 
 
 all:
-	${CC} ${CFLAGS} -o server server.c reversehashing.c priorityQueue.c ${LIBS}
+	${CC} ${CFLAGS} -o server server.c reversehashing.c ${LIBS}
 
 clean:
 	rm -f server
