@@ -44,6 +44,7 @@ int main(int argc, char *argv[]) {
     int option = 1;
     setsockopt(sockFileDescripter, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
 
+    initReverseHashing(lock);
 
     /* Initialize socket structure */
     // bzero() is used to set all the socket structures with null values. It does the same thing as the following:
@@ -78,9 +79,8 @@ int main(int argc, char *argv[]) {
                 perror("ERROR on accept");
                 exit(1);
             }
-            ThreadInfo* ti = malloc(sizeof(ThreadInfo));
+            struct ThreadInfo* ti = malloc(sizeof(struct ThreadInfo));
             ti->fs = newSockFileDescripter;
-            ti->lock = lock;
             // For each client request creates a thread and assign the request to it to process
             err = pthread_create(&tid[i%THREAD_AMOUNT], NULL, reversehashing, ti);
             // pthread_join(tid[(i)%THREAD_AMOUNT], NULL);
