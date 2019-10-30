@@ -12,3 +12,4 @@ typedef struct HashInfo {
 } HashInfo;
 
 #endif //HASHTABLE_H
+// comment 
