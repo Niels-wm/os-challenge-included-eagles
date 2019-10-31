@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
                 perror("ERROR on accept");
                 exit(1);
             }
-            ThreadInfo* ti = malloc(sizeof(ThreadInfo));
+            struct ThreadInfo* ti = malloc(sizeof(struct ThreadInfo));
             ti->fs = newSockFileDescripter;
             ti->lock = lock;
             // For each client request creates a thread and assign the request to it to process
