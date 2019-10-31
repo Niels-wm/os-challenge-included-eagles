@@ -19,8 +19,6 @@ uint64_t reversehashing2(uint64_t start, uint64_t end, uint8_t *hash){
   uint8_t testHash[32];
   start = be64toh(start);
   end = be64toh(end);
-  printf("START %"PRIu64, start);
-  printf("END %"PRIu64, end);
 
   for (answer = start; answer <= end; answer++){
     bzero(testHash, 32);
@@ -28,11 +26,9 @@ uint64_t reversehashing2(uint64_t start, uint64_t end, uint8_t *hash){
     // printf("\n" );
     SHA256((char*) &answer, 8, testHash);
     if (memcmp(testHash, hash, sizeof(testHash)) == 0) {
-      printf("\nFIND ANYTHING\n" );
       return htobe64(answer);
     }
   }
-  printf("\nDIDN'T FIND ANYTHING\n" );
 }
 
 void *reversehashing(void *arg) {

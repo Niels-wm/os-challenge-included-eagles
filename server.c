@@ -84,9 +84,6 @@ int main(int argc, char *argv[]) {
     jobQueuePacket->queue = malloc(sizeof(struct Packet)*jobQueueSize);
     jobQueuePacket->jobPosition = malloc(sizeof(int));
     *jobQueuePacket->jobPosition = -1;
-    sem_getvalue(jobQueuePacket->jobEmptyCount, &value);
-    printf("emptyCount %d\n", value);
-
 
     initProducer(jobQueuePacket, sockFileDescripter);
     initConsumer(jobQueuePacket);
@@ -95,10 +92,11 @@ int main(int argc, char *argv[]) {
 
     i = 0;
     // pthread_t producerTid[THREAD_AMOUNT];
+    int consumerCount = 3;
     pthread_t tIdProducer;
-    pthread_t tIdsConsumers[4];
+    pthread_t tIdsConsumers[consumerCount];
 
-    for (size_t i = 0; i < 4; i++) {
+    for (size_t i = 0; i < consumerCount; i++) {
       err = pthread_create(&tIdsConsumers[i], NULL, consumeFromJobQueue, NULL);
       if (err != 0) {
           perror("ERROR creating thread");
@@ -125,7 +123,7 @@ int main(int argc, char *argv[]) {
 
     pthread_join(tIdProducer, NULL);
 
-    for (size_t i = 0; i < 4; i++) {
+    for (size_t i = 0; i < consumerCount; i++) {
       pthread_join(tIdsConsumers[i], NULL);
     }
     // pthread_join(tIdConsumer5, NULL);
