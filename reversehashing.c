@@ -17,15 +17,22 @@ void initReverseHashing(pthread_mutex_t* htLock){
 uint64_t reversehashing2(uint64_t start, uint64_t end, uint8_t *hash){
   uint64_t answer;
   uint8_t testHash[32];
+  start = be64toh(start);
+  end = be64toh(end);
+  printf("START %"PRIu64, start);
+  printf("END %"PRIu64, end);
 
   for (answer = start; answer <= end; answer++){
     bzero(testHash, 32);
+    // printf("ANSWER: %"PRIu64, answer);
+    // printf("\n" );
     SHA256((char*) &answer, 8, testHash);
-
     if (memcmp(testHash, hash, sizeof(testHash)) == 0) {
+      printf("\nFIND ANYTHING\n" );
       return htobe64(answer);
     }
   }
+  printf("\nDIDN'T FIND ANYTHING\n" );
 }
 
 void *reversehashing(void *arg) {
@@ -91,7 +98,7 @@ void *reversehashing(void *arg) {
       insert(packet.hash, answer);
       pthread_mutex_unlock(hashTableLock);
 
-      answer = htobe64(answer);
+      // answer = htobe64(answer);
       n = write(fs, &answer, 8);
 
       if(n < 0) {

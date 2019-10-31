@@ -14,6 +14,11 @@
 
 #include <string.h>
 
+#include "producer.h"
+#include "consumer.h"
+#include "sempacket.h"
+#include <semaphore.h>
+
 #define PORT 5003
 #define THREAD_AMOUNT 10
 
@@ -64,33 +69,90 @@ int main(int argc, char *argv[]) {
 
     /* Listen */
     listen(sockFileDescripter, 50);
-    clientAddrSize = sizeof(clientAddr);
+
+    struct JobQueuePacket *jobQueuePacket = malloc(sizeof(struct JobQueuePacket));
+
+    int jobQueueSize = 30;
+    int value;
+    // Initialize job queue and send it to producer
+    jobQueuePacket->jobEmptyCount = malloc(sizeof(sem_t));
+    jobQueuePacket->jobFillCount = malloc(sizeof(sem_t));
+    jobQueuePacket->jobQueueLock = malloc(sizeof(sem_t));
+    sem_init(jobQueuePacket->jobEmptyCount, 0, jobQueueSize);
+    sem_init(jobQueuePacket->jobFillCount, 0, 0);
+    sem_init(jobQueuePacket->jobQueueLock, 0, 1);
+    jobQueuePacket->queue = malloc(sizeof(struct Packet)*jobQueueSize);
+    jobQueuePacket->jobPosition = malloc(sizeof(int));
+    *jobQueuePacket->jobPosition = -1;
+    sem_getvalue(jobQueuePacket->jobEmptyCount, &value);
+    printf("emptyCount %d\n", value);
+
+
+    initProducer(jobQueuePacket, sockFileDescripter);
+    initConsumer(jobQueuePacket);
+
+    // clientAddrSize = sizeof(clientAddr);
 
     i = 0;
-    pthread_t tid[THREAD_AMOUNT];
+    // pthread_t producerTid[THREAD_AMOUNT];
+    pthread_t tIdProducer;
+    pthread_t tIdsConsumers[4];
+
+    for (size_t i = 0; i < 4; i++) {
+      err = pthread_create(&tIdsConsumers[i], NULL, consumeFromJobQueue, NULL);
+      if (err != 0) {
+          perror("ERROR creating thread");
+          exit(1);
+      }
+    }
+
+    err = pthread_create(&tIdProducer, NULL, produceToJobQueue, NULL);
+    // pthread_join(tid[(i)%THREAD_AMOUNT], NULL);
+    if (err != 0) {
+        perror("ERROR creating thread");
+        exit(1);
+    }
+
+
+
+    // err = pthread_create(&tIdConsumer5, NULL, consumeFromJobQueue, NULL);
+    // // pthread_join(tid[(i)%THREAD_AMOUNT], NULL);
+    // if (err != 0) {
+    //     perror("ERROR creating thread");
+    //     exit(1);
+    // }
+
+
+    pthread_join(tIdProducer, NULL);
+
+    for (size_t i = 0; i < 4; i++) {
+      pthread_join(tIdsConsumers[i], NULL);
+    }
+    // pthread_join(tIdConsumer5, NULL);
 
     // // Put the accept statement and the following code in an infinite loop
-    while (1) {
-            // printf("\nHere are the i: %d", i);
-            /* Accept */
-            newSockFileDescripter = accept(sockFileDescripter, (struct sockaddr *)&clientAddr, &clientAddrSize);
-
-            if (newSockFileDescripter < 0){
-                perror("ERROR on accept");
-                exit(1);
-            }
-            struct ThreadInfo* ti = malloc(sizeof(struct ThreadInfo));
-            ti->fs = newSockFileDescripter;
-            // For each client request creates a thread and assign the request to it to process
-            err = pthread_create(&tid[i%THREAD_AMOUNT], NULL, reversehashing, ti);
-            // pthread_join(tid[(i)%THREAD_AMOUNT], NULL);
-            if (err != 0) {
-                perror("ERROR creating thread");
-                exit(1);
-            }
-            if (i>=(THREAD_AMOUNT-1)) {
-              pthread_join(tid[(i+1)%THREAD_AMOUNT], NULL);
-            }
-            i++;
-    }
+    // while (1) {
+    //   // printf("\nHere are the i: %d", i);
+    //   /* Accept */
+    //   newSockFileDescripter = accept(sockFileDescripter, (struct sockaddr *)&clientAddr, &clientAddrSize);
+    //
+    //   if (newSockFileDescripter < 0){
+    //       perror("ERROR on accept");
+    //       exit(1);
+    //   }
+    //
+    //   struct ThreadInfo* ti = malloc(sizeof(struct ThreadInfo));
+    //   ti->fs = newSockFileDescripter;
+    //   // For each client request creates a thread and assign the request to it to process
+    //   err = pthread_create(&tid[i%THREAD_AMOUNT], NULL, reversehashing, ti);
+    //   // pthread_join(tid[(i)%THREAD_AMOUNT], NULL);
+    //   if (err != 0) {
+    //       perror("ERROR creating thread");
+    //       exit(1);
+    //   }
+    //   if (i>=(THREAD_AMOUNT-1)) {
+    //     pthread_join(tid[(i+1)%THREAD_AMOUNT], NULL);
+    //   }
+    //   i++;
+    // }
 }
