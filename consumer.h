@@ -3,7 +3,8 @@
 
 #include "sempacket.h"
 
-void initConsumer(struct JobQueuePacket *jobQueuePacket);
+void initConsumer(int fd);
 void *consumeFromJobQueue(void *arg);
+void *produceToJobQueue(void *args);
 
-#endif 
+#endif
