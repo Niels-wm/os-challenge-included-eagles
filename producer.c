@@ -32,10 +32,11 @@ void *produceToJobQueue(void *args){
   struct Packet packet;
   struct sockaddr_in  clientAddr;
   socklen_t clientAddrSize;
-  int n, fd;
+  int err, fd;
   int counter = *jobPos;
 
   clientAddrSize = sizeof(clientAddr);
+  bzero((char *)&packet, sizeof(struct Packet));
 
   while(1) {
 
@@ -46,11 +47,10 @@ void *produceToJobQueue(void *args){
         exit(1);
     }
 
-    bzero((char *)&packet, sizeof(struct Packet));
-    n = read(fd, &packet, sizeof(struct Packet));
+    err = read(fd, &packet, sizeof(struct Packet));
     packet.fd = fd;
 
-    if (n < 0){
+    if (err < 0){
       perror("ERROR reading from socket");
       exit(1);
     }

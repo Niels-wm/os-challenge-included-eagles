@@ -3,6 +3,7 @@
 #include "packet.h"
 #include <semaphore.h>
 #include "reversehashing.h"
+#include <stdlib.h>
 
 sem_t* emptyCount;
 sem_t* fillCount;
@@ -25,12 +26,14 @@ void initConsumer(struct JobQueuePacket *jobQueuePacket){
 void *consumeFromJobQueue(void *arg){
   struct Packet packet;
   int counter = *jobPos;
-  int n;
+  int value;
+  uint64_t answer;
 
   while(1) {
 
     sem_wait(fillCount);
     sem_wait(queueLock);
+
     packet = jobQueue[*jobPos];
     counter = *jobPos;
     counter--;
@@ -38,8 +41,7 @@ void *consumeFromJobQueue(void *arg){
     sem_post(queueLock);
     sem_post(emptyCount);
 
-    uint64_t answer = reversehashing2(packet.start, packet.end, packet.hash);
-    n = write(packet.fd, &answer, 8);
-
+    answer = reversehashing(packet.start, packet.end, packet.hash);
+    write(packet.fd, &answer, 8);
   }
 }
