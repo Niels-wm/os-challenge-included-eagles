@@ -9,7 +9,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <string.h>
-#include "consumer.h"
+#include "producer.h"
 #include "sempacket.h"
 #include <semaphore.h>
 
@@ -21,7 +21,7 @@ int main(int argc, char *argv[]){
   socklen_t clientAddrSize;
   int n, pid, err;
 
-  initReverseHashing();
+  // initReverseHashing();
 
   sockFileDescripter = socket(AF_INET, SOCK_STREAM, 0);
   if (sockFileDescripter < 0) {
@@ -53,31 +53,31 @@ int main(int argc, char *argv[]){
 
   /* Listen */
   listen(sockFileDescripter, 50);
-  // initProducer(jobQueuePacket, sockFileDescripter);
-  initConsumer(sockFileDescripter);
+  initProducer(sockFileDescripter);
+  // initConsumer(sockFileDescripter);
 
-  int consumerCount = 10;
+  int producerCount = 10;
   pthread_t tIdProducer;
-  pthread_t tIdsConsumers[consumerCount];
+  pthread_t tIdsProducers[producerCount];
 
-  for (size_t i = 0; i < consumerCount; i++) {
-    err = pthread_create(&tIdsConsumers[i], NULL, consumeFromJobQueue, NULL);
+  for (size_t i = 0; i < producerCount; i++) {
+    err = pthread_create(&tIdsProducers[i], NULL, produceToJobQueue, NULL);
     if (err != 0) {
         perror("ERROR creating thread");
         exit(1);
     }
   }
 
-  err = pthread_create(&tIdProducer, NULL, produceToJobQueue, NULL);
-  // pthread_join(tid[(i)%THREAD_AMOUNT], NULL);
-  if (err != 0) {
-      perror("ERROR creating thread");
-      exit(1);
-  }
+  // err = pthread_create(&tIdProducer, NULL, produceToJobQueue, NULL);
+  // // pthread_join(tid[(i)%THREAD_AMOUNT], NULL);
+  // if (err != 0) {
+  //     perror("ERROR creating thread");
+  //     exit(1);
+  // }
+  //
+  // pthread_join(tIdProducer, NULL);
 
-  pthread_join(tIdProducer, NULL);
-
-  for (size_t i = 0; i < consumerCount; i++) {
-    pthread_join(tIdsConsumers[i], NULL);
+  for (size_t i = 0; i < producerCount; i++) {
+    pthread_join(tIdsProducers[i], NULL);
   }
 }

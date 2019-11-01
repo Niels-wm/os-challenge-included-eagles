@@ -9,7 +9,6 @@ struct Packet {
    uint64_t start;
    uint64_t end;
    uint8_t p;
-   int fd;
 };
 
 #endif

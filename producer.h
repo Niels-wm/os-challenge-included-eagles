@@ -3,7 +3,7 @@
 
 #include "sempacket.h"
 
-// void initProducer(struct JobQueuePacket* queuePacket, int sockFS);
-// void *produceToJobQueue(void *args);
+void initProducer(int sockFS);
+void *produceToJobQueue(void *args);
 
 #endif
