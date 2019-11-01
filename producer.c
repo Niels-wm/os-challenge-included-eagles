@@ -19,8 +19,6 @@ int socketFD;
 
 // int* jobPos;
 
-pthread_mutex_t hashTableLock;
-
 
 void initProducer(int sockFD){
   // emptyCount = queuePacket->jobEmptyCount;
@@ -29,8 +27,6 @@ void initProducer(int sockFD){
   // jobQueue = queuePacket->queue;
   // jobPos = queuePacket->jobPosition;
   socketFD = sockFD;
-  pthread_mutex_init(&hashTableLock, NULL);
-
   printf("INITIALIZED PRODUCER\n" );
 }
 
@@ -67,29 +63,29 @@ void *produceToJobQueue(void *args){
       exit(1);
     }
 
-    pthread_mutex_lock(&hashTableLock);
+    // pthread_mutex_lock(&hashTableLock);
     answer = find(packet.hash);
-    pthread_mutex_unlock(&hashTableLock);
+    // pthread_mutex_unlock(&hashTableLock);
 
     SHA256((char*) &answer, 8, testHash);
     if (answer != 0 && memcmp(testHash, packet.hash, sizeof(testHash)) == 0){
-      printf("\nFOUND FROM HASHTABLE %"PRIu64, answer);
-      printf("\n");
+      // printf("\nFOUND FROM HASHTABLE %"PRIu64, answer);
+      // printf("\n");
       // answer = be64toh(answer);
     } else {
       end = be64toh(packet.end);
       start = be64toh(packet.start);
       // uint8_t hash[32] = packet.hash;
-      printf("ITERATING\n");
+      // printf("ITERATING\n");
 
       for (answer = start; answer <= end; answer++){
 
         SHA256((char*) &answer, 8, testHash);
         if (memcmp(testHash, packet.hash, sizeof(testHash)) == 0) {
-          printf("FOUND ANSWER: %" PRIu64, answer);
-          pthread_mutex_lock(&hashTableLock);
+          // printf("FOUND ANSWER: %" PRIu64, answer);
+          // pthread_mutex_lock(&hashTableLock);
           insert(packet.hash, answer);
-          pthread_mutex_unlock(&hashTableLock);
+          // pthread_mutex_unlock(&hashTableLock);
           // return htobe64(answer);
           break;
         }
@@ -99,7 +95,7 @@ void *produceToJobQueue(void *args){
 
 
     // answer = reversehashing(packet.start, packet.end, packet.hash);
-    printf("FOUND ANSWER %" PRIu64, answer);
+    // printf("FOUND ANSWER %" PRIu64, answer);
     answer = htobe64(answer);
     write(fd, &answer, 8);
 

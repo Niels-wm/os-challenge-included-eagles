@@ -12,6 +12,7 @@
 #include "producer.h"
 #include "sempacket.h"
 #include <semaphore.h>
+#include "hashtable.h"
 
 #define PORT 5003
 
@@ -20,6 +21,7 @@ int main(int argc, char *argv[]){
   struct sockaddr_in serverAddr, clientAddr;
   socklen_t clientAddrSize;
   int n, pid, err;
+  initHashTable();
 
   // initReverseHashing();
 
