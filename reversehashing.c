@@ -64,7 +64,7 @@ void *reversehashing(void *arg) {
     }
     else {
 		//First itteration of the hashed algorithm, simplest possible version without a seed
-		while !(memcmp(theHash, packet.hash, sizeof(theHash)) == 0) {
+		while (!(memcmp(theHash, packet.hash, sizeof(theHash)) == 0)) {
 			answer = (rand() % (sizeof(theHash) - start + 1)) + start;
 			unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
 		}
