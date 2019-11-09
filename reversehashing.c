@@ -26,8 +26,7 @@ void *reversehashing(void *arg) {
     bzero((char *)&packet, sizeof(packet));
     n = read(ti->fs, &packet, sizeof(packet));
 
-    if (n < 0)
-    {
+    if (n < 0) {
         perror("ERROR reading from socket");
         exit(1);
     }
@@ -70,7 +69,7 @@ void *reversehashing(void *arg) {
 		while (!(memcmp(theHash, packet.hash, sizeof(theHash)) == 0)) {
 			bzero(theHash, 32);
 			answer = (rand() % (sizeof(theHash) - start + 1)) + start;
-			//printf("\nRandomly Generated:  %" PRIu64, answer);
+			printf("\nRandomly Generated:  %" PRIu64, answer);
 			unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
 		}
       /*for (answer; answer <= packet.end; answer++){
