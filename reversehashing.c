@@ -37,6 +37,7 @@ void *reversehashing(void *arg) {
 
     // /* SHA 256 ALGO */
 	uint64_t start = packet.start;
+	uint64_t end = packet.end;
     uint64_t answer = start;
     uint8_t theHash[32];
 
@@ -68,7 +69,7 @@ void *reversehashing(void *arg) {
 		printf("\nEnd:  %" PRIu64, sizeof(theHash));
 		while (!(memcmp(theHash, packet.hash, sizeof(theHash)) == 0)) {
 			bzero(theHash, 32);
-			answer = (rand() % (sizeof(theHash) - start + 1)) + start;
+			answer = (rand() % (end - start + 1)) + start;
 			printf("\nRandomly Generated:  %" PRIu64, answer);
 			unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
 		}
