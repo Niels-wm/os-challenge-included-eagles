@@ -67,7 +67,7 @@ void *reversehashing(void *arg) {
 		while (!(memcmp(theHash, packet.hash, sizeof(theHash)) == 0)) {
 			bzero(theHash, 32);
 			answer = (rand() % (sizeof(theHash) - start + 1)) + start;
-			printf("\n random number generated: %i  between %i and %i", answer, start, sizeof(Hash));
+			printf("\n random number generated: %i  between %i and %i", answer, start, sizeof(theHash));
 			unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
 		}
       /*for (answer; answer <= packet.end; answer++){
