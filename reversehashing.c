@@ -65,12 +65,12 @@ void *reversehashing(void *arg) {
     else {
 		//First itteration of the hashed algorithm, simplest possible version without a seed
 		
-		printf("\nStart:  %" PRIu64, start);
-		printf("\nEnd:  %" PRIu64, sizeof(theHash));
+		//printf("\nStart:  %" PRIu64, start);
+		//printf("\nEnd:  %" PRIu64, sizeof(theHash));
 		while (!(memcmp(theHash, packet.hash, sizeof(theHash)) == 0)) {
 			bzero(theHash, 32);
 			answer = (rand() % (sizeof(theHash) - start + 1)) + start;
-			printf("\nRandomly Generated:  %" PRIu64, answer);
+			//printf("\nRandomly Generated:  %" PRIu64, answer);
 			unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
 		}
       /*for (answer; answer <= packet.end; answer++){
