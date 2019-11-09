@@ -52,7 +52,7 @@ void *reversehashing(void *arg) {
 
 
     if (foundAnswer != 0 && memcmp(testHash, packet.hash, sizeof(testHash)) == 0){
-      printf("\nFOUND in hashtable\n");
+      //printf("\nFOUND in hashtable\n");
       foundAnswer = be64toh(foundAnswer);
       n = write(fs, &foundAnswer, 8);
 
@@ -70,7 +70,7 @@ void *reversehashing(void *arg) {
 		while (!(memcmp(theHash, packet.hash, sizeof(theHash)) == 0)) {
 			bzero(theHash, 32);
 			answer = (rand() % (end - start + 1)) + start;
-			printf("\nRandomly Generated:  %" PRIu64, answer);
+			//printf("\nRandomly Generated:  %" PRIu64, answer);
 			unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
 		}
       /*for (answer; answer <= packet.end; answer++){
