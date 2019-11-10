@@ -11,9 +11,4 @@ struct Packet {
    uint8_t p;
 };
 
-struct arg_struct {
-    int fileDescripter;
-    struct Packet packet;
-};
-
 #endif

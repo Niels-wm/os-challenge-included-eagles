@@ -6,7 +6,7 @@ LIBS = -lcrypto -pthread
 
 
 all:
-	${CC} ${CFLAGS} -o server server.c reversehashing.c ${LIBS}
+	${CC} ${CFLAGS} -o server server.c reversehashing.c hashtable.c ${LIBS}
 
 clean:
 	rm -f server
