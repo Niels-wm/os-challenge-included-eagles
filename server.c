@@ -14,7 +14,7 @@
 #include <string.h>
 
 #define PORT 5003
-#define NTHREADS 50
+#define NTHREADS 3
 
 
 int main(int argc, char *argv[]) {
