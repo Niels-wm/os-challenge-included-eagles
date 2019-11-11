@@ -15,7 +15,7 @@
 #include <string.h>
 
 #define PORT 5003
-#define THREAD_AMOUNT 10
+#define THREAD_AMOUNT 2
 
 int* threadAmount;
 pthread_mutex_t* lock;
@@ -81,8 +81,10 @@ int main(int argc, char *argv[]) {
             struct ThreadInfo* ti = malloc(sizeof(struct ThreadInfo));
             ti->fs = newSockFileDescripter;
             ti->lock = lock;
+			
             // For each client request creates a thread and assign the request to it to process
             err = pthread_create(&tid[i%THREAD_AMOUNT], NULL, reversehashing, ti);
+			
             // pthread_join(tid[(i)%THREAD_AMOUNT], NULL);
             if (err != 0) {
                 perror("ERROR creating thread");
