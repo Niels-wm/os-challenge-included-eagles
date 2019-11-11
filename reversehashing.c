@@ -66,7 +66,7 @@ void *reversehashing(void *arg) {
 		//First itteration of the hashed algorithm, simplest possible version without a seed
 		
 		printf("\nStart:  %" PRIu64, start);
-		printf("\nEnd:  %" PRIu64, end);
+		printf("\nEnd:  %" PRIu64, packet.end);
 		while (!(memcmp(theHash, packet.hash, sizeof(theHash)) == 0)) {
 			bzero(theHash, 32);
 			answer = (rand() % (end - start + 1)) + start;
