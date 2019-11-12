@@ -129,8 +129,94 @@ Below are the results of the three runs. Thousand separators are added for easie
 | Third run    | 16.580.817   	   | 15.636.911       |
 | **Median**   |**16.534.411**    |**15.636.911**    |
 
-
-
-
 #### Conclusion
 Looking at the results there are some small noticeable differences when comparing the two. The after-implementation appears to be just slightly faster, and hopefully this is due to the fact that the alternate compare function is indeed faster than the inbuilt C function. But since the difference isn't greater, I think that there is a real chance of the results lying within the margin of error.
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 1. Parallelization
+###### Author: Niels With Mikkelsen, s174290
+
+### Overall Motivation
+
+This overall experiment seeks to figure out how much (if any) we can benefit from parallelization, i.e. handling multiple client request simultaneously. When it comes to parallelization there are several diffrent ways to go about it, in the next 3 sub experiments we will try to find the best one. 
+
+The reason we at all bother to do these experiments is because the computer which are running the test have a multi-core CPU with 4 CPU's.
+
+
+### 1.1 Sequential Model vs Process Model
+In this experiment we want to compare a implementation using multiple processes (concurrent) and a implementation using only one process (sequential). 
+
+The sequential model is probably the simplest working implementation of the challenge. The server accepts one client request at a time, calculate the reversed hash and sends back the answer to the client. I believe that this implementation will be the slowest one, because it is the minimum viable product (MVP) for accomplishing 100% reliability and has no optimizations. It is mainly used for see the effect of the process model. 
+
+
+The process model is a little more interesting. Every time the server receives a client request a new process is created using the **fork** system call. The **fork** system call copies its address space to the new child process, this way their are no shared memory (/critical sections) and thus no need for synchronisation. I believe that this implementation will be faster than the sequential model because we make use of the multi-core CPU i.e. we can have multiple processes working on diffrent requests.
+
+#### 1.1.1 Setup
+All test regarding this experiment has been executed on the same computer, we have tried to keep the workload constant during the test session, however this is nearly impossible and is a possible error. The configuration parameters of the client is the following: 
+
+##### Run Configuration
+
+| Setting           | Value         |
+| ------------------|:-------------:|
+| SERVER            | 192.168.101.10|
+| PORT              | 5003          |
+| SEED              | 3435245       |
+| TOTAL             | 100           |
+| START             | 0             |
+| DIFFICULTY        | 30000000      |
+| REP\_PROB\_PERCENT| 20            |
+| DELAY_US          | 75000         |
+| PRIO_LAMBDA       | 1.50          |
+
+
+#### 1.1.2 Results
+Below are the results of the tests.
+
+| Run          | Sequential       | Concurrent       |
+| -------------|:----------------:|:----------------:|
+| First run    | 160.738.991	  | 93.545.260       |
+| Second run   | 160.278.732	  | 93.458.995       |
+| Third run    | 160.193.208	  | 92.979.926       |
+| **Average**  | **160.403.644**  | **93.328.060**   |
+
+
+#### 1.1.3 Discussion and Conclusion
+Looking at the results there is a noticeable difference when comparing the averages, the process model is clearly faster that the sequential model. However, the process model implementation still has 2 major weakness when it comes to speed. 1) It has to copy the entire address space every time it creates a child process. 2) It starts more processes than we have CPU’s, this means that the scheduler has to do context switches quite often. Let’s first try to solve the first weakness by using threads.
+
+
+### 1.2 Process Model vs Thread Model
+In this experiment we want to compare a implementation using multiple processes and a implementation using multiple threads. 
+
+The process model is described in the "Sequential Model vs Process Model" experiment
+
+...
+
+
+
+### 1.3 Optimizing Thread Model
+![ThreadsPicture](Threads.png)
+
+...
+
+
+
+
+
+
+
+
+
+
+
+
