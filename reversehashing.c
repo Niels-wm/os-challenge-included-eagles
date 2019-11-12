@@ -73,7 +73,7 @@ void *reversehashing(void *arg) {
 			//printf("\nRandomly Generated:  %" PRIu64, answer);
 			unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
 		}
-		printf("\nRandomly Generated Answer:  %" PRIu64, answer);
+		//printf("\nRandomly Generated Answer:  %" PRIu64, answer);
       /*for (answer; answer <= packet.end; answer++){
         bzero(theHash, 32);
         unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
