@@ -18,13 +18,11 @@ void *reversehashing(void *arg) {
     int fs = ti->fs;
     int i, n;
 
-
     /* Receive */
     bzero((char *)&packet, sizeof(packet));
     n = read(ti->fs, &packet, sizeof(packet));
 
-    if (n < 0)
-    {
+    if (n < 0) {
         perror("ERROR reading from socket");
         exit(1);
     }
@@ -56,6 +54,7 @@ void *reversehashing(void *arg) {
           exit(1);
       }
     } 
+
     else { // If no value found in hash table use brute force algorithm
       for (answer; answer <= packet.end; answer++){
         bzero(theHash, 32);
@@ -87,10 +86,10 @@ void *reversehashing(void *arg) {
 
 // Main source: https://macosxfilerecovery.com/faster-memory-comparison-in-c/
 int testcmp(const unsigned char *hash1, const unsigned char *hash2, unsigned int length) {
-  if (length >= 4) { // Check if value is aligned ina 4-byte boundary.
+  if (length >= 4) { // Check if value is aligned in a 4-byte boundary.
     int diff = *(int *)hash1 - *(int *)hash2;
-    if (diff)
+    if (diff)        // If the difference is different from 0.
       return diff;
-  }
+  }                  // Otherwise use inbuilt memcmp.
   return memcmp(hash1, hash2, length);
 }
