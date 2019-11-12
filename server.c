@@ -101,16 +101,19 @@ int main(int argc, char *argv[]) {
             // Max thread priority (RR) is 99. 99/16 ~ 6
             param.sched_priority = (int) packet.p * 6;
 
+            // Initialize thread attributes.
             err = pthread_attr_init(&tattr);
             if (err != 0){
                 perror("Error initializing thread attributes");
             }
 
+            // Set the scheduler policy.
             err = pthread_attr_setschedpolicy(&tattr, policy);
             if (err != 0) {
-                perror("Error setting thread schedule policy");
+                perror("Error setting thread scheduler policy");
             }
 
+            // Set the scheduler parameters (priority).
             err = pthread_attr_setschedparam(&tattr, &param);
             if (err != 0) {
                 perror("Error setting thread priority");
@@ -123,6 +126,7 @@ int main(int argc, char *argv[]) {
 
             printf("Starting thread_id[%d]\n", ((i)%NTHREADS));
 
+            // Pass attributes when creating thread.
             err = pthread_create(&thread_id[i%NTHREADS], &tattr, reversehashing, args);
             if (err != 0) {
                 perror("ERROR creating thread");
