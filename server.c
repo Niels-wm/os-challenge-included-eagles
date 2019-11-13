@@ -15,7 +15,7 @@
 #include <string.h>
 
 #define PORT 5003
-#define THREAD_AMOUNT 2
+#define THREAD_AMOUNT 5
 
 int* threadAmount;
 pthread_mutex_t* lock;
