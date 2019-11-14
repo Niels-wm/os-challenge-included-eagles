@@ -1,2 +1,2 @@
 
-void* reversehashing (void *arg);
+void reversehashing(void *ti, void *packet);
