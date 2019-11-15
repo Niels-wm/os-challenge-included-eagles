@@ -57,3 +57,5 @@ dkms.conf
 # Hidden system files
 .DS_Store
 Thumbs.db
+
+server
