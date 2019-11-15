@@ -12,7 +12,6 @@ pthread_mutex_t hashTableLock;
 #define SIZE 4096
 #define HASH_SIZE 32
 struct HashPacket hashArray[SIZE] = {};
-int counter = 0;
 
 void initHashTable() {
   pthread_mutex_init(&hashTableLock, NULL);
@@ -33,11 +32,9 @@ uint64_t find(uint8_t key[32]) {
   int hashKey = hashIndex(key);
 
   while(hashArray[hashKey].value != 0) {
-    if (memcmp(hashArray[hashKey].key, key, HASH_SIZE*sizeof(uint8_t)) == 0){
-      printf("FOUND\n" );
+    if (memcmp(hashArray[hashKey].key, key, HASH_SIZE*sizeof(uint8_t)) == 0){  
       return hashArray[hashKey].value;
     }
-    printf("LOOKING\n");
     hashKey = (hashKey + 1) % SIZE;
   }
 
@@ -50,18 +47,14 @@ void insert(uint8_t key[], const uint64_t value) {
 
     while(hashArray[hashKey].value != 0) {
       if (value == hashArray[hashKey].value){
-        printf("VALUE ALREADY STORED\n");
         return;
       }
-      printf("COLLISSION\n" );
       hashKey = (hashKey + 1) % SIZE;
     }
 
     pthread_mutex_lock(&hashTableLock);
-    counter++;
     hashArray[hashKey].value = value;
     memcpy(hashArray[hashKey].key, key, HASH_SIZE*sizeof(uint8_t));
     pthread_mutex_unlock(&hashTableLock);
-    printf("AMOUNT IN HASHTABLE %d\n", counter);
 
 }
