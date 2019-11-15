@@ -10,24 +10,22 @@
 
 #include <string.h>
 #include <inttypes.h>
+#include <unistd.h>
+
+#include <pthread.h>
+
+#include "priority_list.h"
 
 #define PORT 5003
+#define NUM_THREADS 4
 
-void reversehashing (int sock);
-
-struct Packet {
-   uint8_t hash[32];
-   uint64_t start;
-   uint64_t end;
-   uint8_t p;
-};
+static void* worker_thread(void* vp);
+void reversehashing (struct Request request);
 
 int main(int argc, char *argv[]) {
     int sockFileDescripter, newSockFileDescripter;
     struct sockaddr_in serverAddr, clientAddr;
     socklen_t clientAddrSize;
-    int n, i, pid;
-
 
     sockFileDescripter = socket(AF_INET, SOCK_STREAM, 0);
     if (sockFileDescripter < 0) {
@@ -47,7 +45,7 @@ int main(int argc, char *argv[]) {
     // bzero() is used to set all the socket structures with null values. It does the same thing as the following:
     // memset(&serverAddr, '\0', sizeof(serverAddr));
     bzero((char *)&serverAddr, sizeof(serverAddr));
-    
+
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(PORT);
     serverAddr.sin_addr.s_addr = INADDR_ANY;
@@ -64,102 +62,105 @@ int main(int argc, char *argv[]) {
     listen(sockFileDescripter, 5);
     clientAddrSize = sizeof(clientAddr);
 
+    init_list();
 
+    int i;
+    for(i = 0; i < NUM_THREADS; i++){
+        pthread_t thread;
+        pthread_create(&thread, NULL, &worker_thread, NULL);
+    }
 
     // Put the accept statement and the following code in an infinite loop
     while (1) {
-            
-            /* Accept */
-            newSockFileDescripter = accept(sockFileDescripter, (struct sockaddr *)&clientAddr, &clientAddrSize);
-            
-            if (newSockFileDescripter < 0){
-                perror("ERROR on accept");
-                exit(1);
-            }
 
-            /* Create child process */
-            pid = fork();
+        /* Accept */
+        newSockFileDescripter = accept(sockFileDescripter, (struct sockaddr *)&clientAddr, &clientAddrSize);
 
-            if (pid < 0) {
-                perror("ERROR on fork");
-                exit(1);
-            }
-            
-            if (pid == 0) {
-                /* This is the client process */
-                close(sockFileDescripter);
-                reversehashing(newSockFileDescripter);
-                exit(0);
-            } else {
-                close(newSockFileDescripter);
-            }
+        if (newSockFileDescripter < 0){
+            perror("ERROR on accept");
+            exit(1);
+        }
+        
+        /* Build the request entry in the linked-list */
+        struct Packet current_packet;
+        bzero((char *) &current_packet, sizeof(current_packet));
+        if (read(newSockFileDescripter, &current_packet, sizeof(current_packet)) < 0){
+            perror("ERROR reading from socket");
+            exit(1);
+        }
 
+        struct Request request;
+        request.reply_socket = newSockFileDescripter;
+        request.packet = current_packet;
+        request.prio = (current_packet.end - current_packet.start) / current_packet.p; // compute the difficulty/reward of the task
+
+        push_item(request);
     }
 }
 
-
-
-void reversehashing (int sock) {
-    struct Packet packet1;
-    int n, i;
-
-
-    /* Recive */
-    bzero((char *)&packet1, sizeof(packet1));
-    n = read(sock, &packet1, sizeof(packet1));
-
-    if (n < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
+static void* worker_thread(void* vp){
+    while(1){
+        struct Request request = pop_item();
+        if(request.reply_socket == -1){
+            usleep(1000);
+            continue;
+        }
+        reversehashing(request);
     }
+    return NULL; // I win this time, gcc! :P
+}
 
+void reversehashing (struct Request request) {
+    struct Packet packet1 = request.packet;
+    int n, i;
+    int sock = request.reply_socket;
+    
     // Reverse the start, end and p:
     packet1.start = be64toh(packet1.start);
     packet1.end = be64toh(packet1.end);
 
-    
-    printf("Here are the received hash:\n");
-    for (i = 0; i < 32; i++){
-        printf("%0x", packet1.hash[i]);
-    }
 
-    printf("\nHere are the start:   %" PRIu64 "\n", packet1.start);
-    printf("Here are the end:     %" PRIu64 "\n", packet1.end);
-    printf("Here are the p:       %d\n", packet1.p);
+    //printf("Here are the received hash:\n");
+    //for (i = 0; i < 32; i++){
+    //    printf("%0x", packet1.hash[i]);
+    //}
+
+    //printf("\nHere are the start:   %" PRIu64 "\n", packet1.start);
+    //printf("Here are the end:     %" PRIu64 "\n", packet1.end);
+    //printf("Here are the p:       %d\n", packet1.p);
 
 
 
     /* SHA 256 ALGO */ 
-    printf("\nStarting the Reverse Hashing (Brute Force) Algorithm:\n");
-    uint64_t answer = packet1.start;
+    //printf("\nStarting the Reverse Hashing (Brute Force) Algorithm:\n");
+    uint64_t answer;
     uint8_t theHash[32];
 
-    for (answer; answer <= packet1.end; answer++){
+    for (answer = packet1.start; answer <= packet1.end; answer++){
 
         bzero(theHash, 32);
-        unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
-
+        SHA256((const unsigned char *) &answer, 8, theHash);
 
         if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
-            printf("Found a match, with:  %" PRIu64, answer);
+    //        printf("Found a match, with:  %" PRIu64, answer);
             break;
         }
     }
 
-    
-    printf("\nHere are the calculated hash:\n");
-    for (i = 0; i < 32; i++){
-        printf("%0x", theHash[i]);
-    }
-    printf("\n");
+
+    //printf("\nHere are the calculated hash:\n");
+    //for (i = 0; i < 32; i++){
+    //    printf("%0x", theHash[i]);
+    //}
+    //printf("\n");
 
 
     /* Send */
     answer = htobe64(answer);
     n = write(sock, &answer ,8);
+    close(sock);
 
     if(n < 0) {
         perror("ERROR writing to socket");
-        exit(1);
     }
 }
