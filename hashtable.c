@@ -20,6 +20,7 @@ void initHashTable() {
 
 unsigned long hashIndex(uint8_t key[32]) {
     unsigned long index = 0;
+
     int i;
 
     for (i = 0; i < HASH_SIZE; ++i) {
@@ -42,6 +43,7 @@ uint64_t find(uint8_t key[32]) {
 
   return 0;
 }
+// hej
 
 void insert(uint8_t key[], const uint64_t value) {
     int hashKey = hashIndex(key);
