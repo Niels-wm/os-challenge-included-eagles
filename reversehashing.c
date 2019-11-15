@@ -21,7 +21,7 @@ uint64_t reversehashing(uint64_t start, uint64_t end, uint8_t *hash){
   bzero(testHash, 32);
 
   // pthread_mutex_lock(&hashTableLock);
-  // answer = find(hash);
+  answer = find(hash);
   // pthread_mutex_unlock(&hashTableLock);
 
   // if(answer != 0) {

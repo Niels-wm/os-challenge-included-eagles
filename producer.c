@@ -63,52 +63,22 @@ void *produceToJobQueue(void *args){
       exit(1);
     }
 
-    // pthread_mutex_lock(&hashTableLock);
     answer = find(packet.hash);
-    // pthread_mutex_unlock(&hashTableLock);
-
-    SHA256((char*) &answer, 8, testHash);
-    if (answer != 0 && memcmp(testHash, packet.hash, sizeof(testHash)) == 0){
-      // printf("\nFOUND FROM HASHTABLE %"PRIu64, answer);
-      // printf("\n");
-      // answer = be64toh(answer);
-    } else {
+    if (answer == 0){
       end = be64toh(packet.end);
       start = be64toh(packet.start);
-      // uint8_t hash[32] = packet.hash;
-      // printf("ITERATING\n");
 
       for (answer = start; answer <= end; answer++){
-
         SHA256((char*) &answer, 8, testHash);
-        if (memcmp(testHash, packet.hash, sizeof(testHash)) == 0) {
-          // printf("FOUND ANSWER: %" PRIu64, answer);
-          // pthread_mutex_lock(&hashTableLock);
+        if (memcmp(testHash, packet.hash, 32 * sizeof(uint8_t)) == 0) {
           insert(packet.hash, answer);
-          // pthread_mutex_unlock(&hashTableLock);
-          // return htobe64(answer);
           break;
         }
+
       }
     }
-
-
-
-    // answer = reversehashing(packet.start, packet.end, packet.hash);
-    // printf("FOUND ANSWER %" PRIu64, answer);
     answer = htobe64(answer);
     write(fd, &answer, 8);
-
-    // sem_wait(emptyCount);
-    // sem_wait(queueLock);
-    // // Critical section
-    // counter = *jobPos;
-    // counter++;
-    // *jobPos = counter;
-    // jobQueue[*jobPos] = packet;
-    //
-    // sem_post(queueLock);
-    // sem_post(fillCount);
   }
   return NULL;
 }
