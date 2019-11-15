@@ -261,6 +261,49 @@ Surprisingly the best number of threads seems to 5. We expected that the best nu
 
 
 
+//Helena
+### Linear Search vs Random Search
+###### Author: Helena Gunia Schiøtz, s174279
+###### Branch: random_algo
+It might be possible to speed up the brute force algorithm for finding a hash that isn't in the hashtable. In the current version of the server a linear search is used, but I will try to see if this can be improved upon by using a random search instead of the linear. Sometimes when there are no factors to improve a search futher, it is worth trying a random search to see if that might improve this timeconsuming part of our server.
+
+#### Setup
+For a both tests a simple run-client with custom difficulty and total ammount is used, as my computer can run neither the milestone nor the final client due to not having enough cores to handle it. The total ammount of number of threads is set to 2 for all of these tests.
+Two tests are run, to test how the random search scales with increasing difficulty and increasing total number of requests. Since the rinal-run-clint.sh can't be used in these tests, i will try to get as close as possible.
+
+##### Run Configuration 
+The repetition probability is set to 0 to maximize the probability of the brute force being called, and since the priority is of no importance here, it is set to 0.
+| Setting           | Value Test 1  | Value Test 2  |
+| ------------------|:-------------:|:-------------:|
+| SERVER            | 192.168.101.10| 192.168.101.10|
+| PORT              | 5003          | 5003 			|
+| SEED              | 1234          | 1234          |
+| TOTAL             | 1000          | 100000        |
+| START             | 0             | 0             |
+| DIFFICULTY        | 1000	        | 100000        |
+| REP\_PROB\_PERCENT| 0             | 0 			|
+| DELAY_US          | 100000        | 100000  		|
+| PRIO_LAMBDA       | 0	            | 0				|
+
+
+#### Testing
+The 'Linear Search' here is simply the version from the server on the master branch.
+
+| Run          | Linear Search 1  | Random Search 1	 | Master Server 2  | Random Search 2  |
+| -------------|:----------------:|:----------------:|:----------------:|:----------------:|
+| First run    | 6129			  | 5649			 | 53117 			| 323742           |
+| Second run   | 5604		      | 5466			 | 57066		    | 333272           |
+| Third run    | 5291		 	  | 5681			 |                  | 288387           |
+| Fourth run   | 5733  		 	  | 5427			 |		    	    | 324619           |
+| Fifth run    | 6296		 	  | 5314			 |				    | 238173           |
+
+
+####Discussion
+Even though the best case scenario for the random search is O(1), the worst case scenario is O(Infinity). Since there is no check to make sure that a randomly generated number has not been generated and tested before, it can keep infinitly checking the same wrong number or numbers over and over again. For the linear search the best case scenario is also O(1) if the hashed number is the starting number. But unlike the random search the worst case scenario is O(n). So even if the hashed number is the sum of the start value and the difficulty, there will at most be a number of searches equal to the difficulty - 1000 and 1000000 for my tests and 30000000 for the milestone and final test.
+
+#### Conclusion
+With smaller difficulty and total number of requests, the two algorithms appeared to have almost the same mean score. But once a greater difficulty and total number of requests was increase the speed of the random search became almost 10 times as great as that of the iterative. This means that for the final test run the random search might be slower by an even greater facter, thus it WON'T be implemented the final version of the server.
+
 
 
 
