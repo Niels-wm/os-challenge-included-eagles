@@ -49,7 +49,7 @@ void *reversehashing(void *arg) {
     SHA256((char*) &foundAnswer, 8, testHash);
 
 
-    if (foundAnswer != 0 && memcmp(testHash, packet.hash, sizeof(testHash)) == 0){
+    if (foundAnswer != 0 && testcmp(testHash, packet.hash, sizeof(testHash)) == 0){
       printf("\nFOUND in hashtable\n");
       foundAnswer = be64toh(foundAnswer);
       n = write(fs, &foundAnswer, 8);
@@ -65,7 +65,7 @@ void *reversehashing(void *arg) {
         bzero(theHash, 32);
         unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
 
-        if (memcmp(theHash, packet.hash, sizeof(theHash)) == 0) {
+        if (testcmp(theHash, packet.hash, sizeof(theHash)) == 0) {
           //printf("\nFound a match, with:  %" PRIu64, answer);
           break;
         }
@@ -88,4 +88,15 @@ void *reversehashing(void *arg) {
     free(ti);
     pthread_exit(NULL);
     return NULL;
+}
+
+// Optimization of memcmp
+// Main source: https://macosxfilerecovery.com/faster-memory-comparison-in-c/ 
+int testcmp(const unsigned char *hash1, const unsigned char *hash2, unsigned int length) {
+  if (length >= 4) { // Check if value is aligned in a 4-byte boundary.
+    int diff = *(int *)hash1 - *(int *)hash2;
+    if (diff)
+      return diff;
+  }
+  return memcmp(hash1, hash2, length);
 }
