@@ -62,8 +62,10 @@ int main(int argc, char *argv[]) {
     listen(sockFileDescripter, 5);
     clientAddrSize = sizeof(clientAddr);
 
+    /* initialize the priority list */
     init_list();
 
+    /* create the worker threads */
     int i;
     for(i = 0; i < NUM_THREADS; i++){
         pthread_t thread;
@@ -89,6 +91,7 @@ int main(int argc, char *argv[]) {
             exit(1);
         }
 
+        /* construct the request, which tracks the return socket as well as the expected value of task completion */
         struct Request request;
         request.reply_socket = newSockFileDescripter;
         request.packet = current_packet;
@@ -98,11 +101,12 @@ int main(int argc, char *argv[]) {
     }
 }
 
+/* the worker threads simply pull items from the list and process them */
 static void* worker_thread(void* vp){
     while(1){
         struct Request request = pop_item();
         if(request.reply_socket == -1){
-            usleep(1000);
+            usleep(1000); // prevent to worker threads from just spinning if they're idle - give someone else the wheel!
             continue;
         }
         reversehashing(request);
