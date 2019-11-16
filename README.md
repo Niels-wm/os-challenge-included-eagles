@@ -326,7 +326,7 @@ With smaller difficulty and total number of requests, the two algorithms appeare
 ###### Branch: threadpool_priority
 
 In this experiment, the goal is to optimize the score by choosing tasks based on their expected value. 
-This value is computed to be $$(h_val - l_val)/(priority)$$ Elements are put into a priority queue, 
+This value is computed to be (h_val - l_val)/(priority). Elements are put into a priority queue, 
 implemented as a linked list, in a standard consumer-producer pattern. Worker threads then draw from this queue,
 taking the higher value computations first, and run them to completion. For these tests, I set the number of 
 threads in the worker threadpool to be 4. I compared the run to the base code, turned in for the milestone,
