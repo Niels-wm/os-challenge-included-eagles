@@ -15,12 +15,14 @@
 #include <pthread.h>
 
 #include "priority_list.h"
+#include "reversehashing.h"
 
 #define PORT 5003
 #define NUM_THREADS 4
 
+pthread_mutex_t* ht_lock;
+
 static void* worker_thread(void* vp);
-void reversehashing (struct Request request);
 
 int main(int argc, char *argv[]) {
     int sockFileDescripter, newSockFileDescripter;
@@ -61,6 +63,11 @@ int main(int argc, char *argv[]) {
     /* Listen */
     listen(sockFileDescripter, 5);
     clientAddrSize = sizeof(clientAddr);
+
+
+
+    ht_lock = malloc(sizeof(pthread_mutex_t));
+
 
     /* initialize the priority list */
     init_list();
@@ -109,62 +116,7 @@ static void* worker_thread(void* vp){
             usleep(1000); // prevent to worker threads from just spinning if they're idle - give someone else the wheel!
             continue;
         }
-        reversehashing(request);
+        reversehashing(request, ht_lock);
     }
     return NULL; // I win this time, gcc! :P
-}
-
-void reversehashing (struct Request request) {
-    struct Packet packet1 = request.packet;
-    int n, i;
-    int sock = request.reply_socket;
-    
-    // Reverse the start, end and p:
-    packet1.start = be64toh(packet1.start);
-    packet1.end = be64toh(packet1.end);
-
-
-    //printf("Here are the received hash:\n");
-    //for (i = 0; i < 32; i++){
-    //    printf("%0x", packet1.hash[i]);
-    //}
-
-    //printf("\nHere are the start:   %" PRIu64 "\n", packet1.start);
-    //printf("Here are the end:     %" PRIu64 "\n", packet1.end);
-    //printf("Here are the p:       %d\n", packet1.p);
-
-
-
-    /* SHA 256 ALGO */ 
-    //printf("\nStarting the Reverse Hashing (Brute Force) Algorithm:\n");
-    uint64_t answer;
-    uint8_t theHash[32];
-
-    for (answer = packet1.start; answer <= packet1.end; answer++){
-
-        bzero(theHash, 32);
-        SHA256((const unsigned char *) &answer, 8, theHash);
-
-        if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
-    //        printf("Found a match, with:  %" PRIu64, answer);
-            break;
-        }
-    }
-
-
-    //printf("\nHere are the calculated hash:\n");
-    //for (i = 0; i < 32; i++){
-    //    printf("%0x", theHash[i]);
-    //}
-    //printf("\n");
-
-
-    /* Send */
-    answer = htobe64(answer);
-    n = write(sock, &answer ,8);
-    close(sock);
-
-    if(n < 0) {
-        perror("ERROR writing to socket");
-    }
 }
