@@ -50,7 +50,7 @@ All tests have run on the same computer (using Vagrant). The specifications of t
 
 
 ##### Possible Errors
-Although all tests have been conducted on the same machine, with WIFI and Bluetooth disabled. There is still the possibility for errors coming from background OS tasks. These I have tried to keep at a minimum by disabling as much as possible, such as anti-virus programs and etc. The tests have been conducted on a laptop with the battery being at 100% and plugged in to power and on a cooling pad in order to try and manage thermal conditions. The tests were run back-to-back.
+Although all tests have been conducted on the same machine, with WIFI and Bluetooth disabled. There is still the possibility for errors coming from background OS tasks. These I have tried to keep at a minimum by disabling as much as possible, such as anti-virus programs etc. The tests have been conducted on a laptop with the battery being at 100% and plugged in to power and on a cooling pad in order to try and manage thermal conditions. The tests were run back-to-back.
 
 
 #### Results
@@ -116,7 +116,7 @@ All tests have run on the same computer (using Vagrant). The specifications of t
 
 
 ##### Possible Errors
-Although all tests have been conducted on the same machine, with WIFI and Bluetooth disabled. There is still the possibility for errors coming from background OS tasks. These I have tried to keep at a minimum by disabling as much as possible, such as anti-virus programs and etc. The tests have been conducted on a laptop with the battery being at 100% and plugged in to power and on a cooling pad in order to try and manage thermal conditions. The tests were run back-to-back.
+Although all tests have been conducted on the same machine, with WIFI and Bluetooth disabled. There is still the possibility for errors coming from background OS tasks. These I have tried to keep at a minimum by disabling as much as possible, such as anti-virus programs etc. The tests have been conducted on a laptop with the battery being at 100% and plugged in to power and on a cooling pad in order to try and manage thermal conditions. The tests were run back-to-back.
 
 
 #### Results
@@ -155,15 +155,15 @@ The reason we at all bother to do these experiments is because the computer whic
 
 ### Sequential Model vs Process Model
 ###### Author: Niels With Mikkelsen, s174290
-In this experiment we want to compare a implementation using multiple processes (concurrent) and a implementation using only one process (sequential). 
+In this experiment we want to compare a implementation using only one process (sequential) and a implementation using multiple processes (concurrent)
 
 The sequential model is probably the simplest working implementation of the challenge. The server accepts one client request at a time, calculate the reversed hash and sends back the answer to the client. I believe that this implementation will be the slowest one, because it is the minimum viable product (MVP) for accomplishing 100% reliability and has no optimizations. It is mainly used for see the effect of the process model. 
 
 
-The process model is a little more interesting. Every time the server receives a client request a new process is created using the **fork** system call. The **fork** system call copies its address space to the new child process, this way their are no shared memory (/critical sections) and thus no need for synchronisation. I believe that this implementation will be faster than the sequential model because we make use of the multi-core CPU i.e. we can have multiple processes working on diffrent requests.
+The process model is a little more interesting. Every time the server receives a client request a new process is created using the **fork** system call. The **fork** system call copies its address space to the new child process, this way there is no shared memory (critical sections) and thus no need for synchronisation. I believe that this implementation will be faster than the sequential model because we make use of the multi-core CPU i.e. we can have multiple processes working on diffrent requests.
 
 #### Setup
-All test regarding this experiment has been executed on the same computer, we have tried to keep the workload constant during the test session, however this is nearly impossible and is a possible error. The configuration parameters of the client is the following: 
+All tests regarding this experiment has been executed on the same computer, we have tried to keep the workload constant during the test session, however this is nearly impossible and is a possible error. The configuration parameters of the client was the following: 
 
 ##### Run Configuration
 
@@ -181,9 +181,9 @@ All test regarding this experiment has been executed on the same computer, we ha
 
 
 #### Results
-Below are the results of the tests.
+Below are the results of the tests:
 
-| Run          | Sequential       | processes        |
+| Run          | Sequential       | Processes        |
 | -------------|:----------------:|:----------------:|
 | First run    | 160.738.991	  | 93.545.260       |
 | Second run   | 160.278.732	  | 93.458.995       |
@@ -192,7 +192,7 @@ Below are the results of the tests.
 
 
 #### Discussion and Conclusion
-Looking at the results there is a noticeable difference when comparing the averages, the process model is clearly faster that the sequential model. However, the process model implementation still has 2 major weakness when it comes to speed. 1) It has to copy the entire address space every time it creates a child process. 2) It starts more processes than we have CPU’s, this means that the scheduler has to do context switches quite often. Let’s first try to solve the first weakness by using threads (see Process Model vs Thread Model experiment).
+Looking at the results there is a noticeable difference when comparing the averages, the process model is clearly faster that the sequential model. However, the process model implementation still has 2 major weakness when it comes to speed. 1) It has to copy the entire address space every time it creates a child process. 2) It starts more processes than we have CPU’s, this means that the scheduler has to do context switches quite often. Let’s first try to solve the first weakness by using threads (see section below).
 
 
 ### Process Model vs Thread Model
@@ -201,11 +201,11 @@ In this experiment we want to compare an implementation using multiple processes
 
 The process model is described in the "Sequential Model vs Process Model" experiment. 
 
-The thread model is somehow similar to the process model however threads are more lightweight than processes and thus changing threads is much faster than changing processes and creating and terminating threads is also much faster. Furthermore, threads share the same address space as opposite to processes. For our challenge, which are centered around speed, this sounds very promising. In our implementation we have a fixed number of maximum threads (In this experiment the maximum thread counter is set to 50). In this experiment we use first in first out (FIFO) scheduling to start and wait for threads i.e. when we have started the maximum number of threads we call join() on the thread which was first started. (This can be a problem discuss) and start the new thread when join() return. I believe that the Thread model should be faster than the process model because threads are much more lightweight and don't have to copy the entire address space every time a new thread is started.
+The thread model is somehow similar to the process model however threads are more lightweight than processes and thus changing threads is much faster than changing processes and creating and terminating threads is also much faster. Furthermore, threads share the same address space as opposite to processes. For our challenge, which are centered around speed, this sounds very promising. In our implementation we have a fixed number of maximum threads (In this experiment the maximum thread counter is set to 50). In this experiment we use first in first out (FIFO) scheduling to start and wait for threads i.e. when we have started the maximum number of threads we call join() on the thread which was first started, (This can be a problem discuss) and start the new thread when join() returns. I believe that the Thread model should be faster than the process model because threads are much more lightweight and don't have to copy the entire address space every time a new thread is started.
 
 
 #### Setup
-All test regarding this experiment has been executed on the same computer, we have tried to keep the workload constant during the test session, however this is nearly impossible and is a possible error. The configuration parameters of the client is the following: 
+All tests regarding this experiment has been executed on the same computer, we have tried to keep the workload constant during the test session, however this is nearly impossible and is a possible error. The configuration parameters of the client was the following: 
 
 ##### Run Configuration
 
@@ -223,7 +223,7 @@ All test regarding this experiment has been executed on the same computer, we ha
 
 
 #### Results
-Below are the results of the tests.
+Below are the results of the tests:
 
 | Run          | Processes        | Threads          |
 | -------------|:----------------:|:----------------:|
@@ -234,7 +234,7 @@ Below are the results of the tests.
 
 
 #### Discussion and Conclusion
-Again, looking at the result there is a noticeable difference when comparing the averages, the thread model is faster than the process model. However, there are still some problem with the thread model. 1) It starts more threads than we have CPU's (Problem 2 from Sequential Model vs Process Model experiment) 2) Threads can become idle because of the FIFO implementation e.g. if the first thread takes a very long time to compute and the next 49 threads finished before the first thread, then all 49 threads will wait for the first thread to finish. This is of course bad and could be fixed in another experiment. I will now try to fix the problem with having more threads than CPU's (see Optimizing Maximum Number Threads experiment).
+Again, looking at the result there is a noticeable difference when comparing the averages, the thread model is faster than the process model. However, there are still some problem with the thread model. 1) It starts more threads than we have CPU's (Problem 2 from Sequential Model vs Process Model experiment). 2) Threads can become idle because of the FIFO implementation e.g. if the first thread takes a very long time to compute and the next 49 threads finished before the first thread, then all 49 threads will wait for the first thread to finish. This is of course bad and could be fixed in another experiment. I will now try to fix the problem with having more threads than CPU's (see section below).
 
 
 
@@ -242,16 +242,21 @@ Again, looking at the result there is a noticeable difference when comparing the
 ###### Author: Niels With Mikkelsen, s174290
 In this experiment we want to address the problem with having more threads than CPU's, this should be as simple as setting the number of threads equal to the number of CPU's, however we want to know which number of threads actually give us the best performance. 
 
-We did the experiment by changing the maximum number of threads to 3, 4, 5, 6 and 50. The result can be found in the Results section. The listed number of threads is only how many threads which are handling a client request, we also have the main thread, which is setting up the server, and is managing the threads. To get the total number of threads add one to every number.
+
+We did the experiment by changing the maximum number of threads to 3, 4, 5, 6 and 50. The result can be found in the Results section. The listed number of threads is only how many threads that are actively calculating client requests, in addition to those there are also the main thread which is managing the threads as well as setting up the server initially.
+
+
 #### Results
 Below are the results of the tests.
 
-| Run          | 3 Thread         | 4 threads        | 5 threads        | 6 threads        | 50 threads
+| Run          | 3 threads         | 4 threads        | 5 threads        | 6 threads        | 50 threads
 | -------------|:----------------:|:----------------:|:----------------:|:----------------:|:----------------:
 | First run    | 72.254.359   	  | 65.934.388       | 64.448.642       | 67.687.852       | 80.775.611      |
 | Second run   | 72.153.587	      | 66.226.086	     | 64.632.057       | 65.725.478       | 80.777.803      |
 | Third run    | 71.879.301 	  | 66.140.283       | 64.401.360       | 65.287.954       | 80.458.776      |
 | **Average**  | **72.095.749**   | **66.100.252**   | **64.494.020**   | **66.233.761**   | **80.670.730**  |
+
+Below is a graphical representation of the results:
 
 ![ThreadsPicture](Threads.png)
 
@@ -261,7 +266,15 @@ Surprisingly the best number of threads seems to 5. We expected that the best nu
 
 
 
-//Helena
+
+
+
+
+
+
+
+
+
 ### Linear Search vs Random Search
 ###### Author: Helena Gunia Schiøtz, s174279
 ###### Branch: random_algo
@@ -273,17 +286,18 @@ Two tests are run, to test how the random search scales with increasing difficul
 
 ##### Run Configuration 
 The repetition probability is set to 0 to maximize the probability of the brute force being called, and since the priority is of no importance here, it is set to 0.
+
 | Setting           | Value Test 1  | Value Test 2  |
 | ------------------|:-------------:|:-------------:|
 | SERVER            | 192.168.101.10| 192.168.101.10|
-| PORT              | 5003          | 5003 			|
+| PORT              | 5003          | 5003 			    |
 | SEED              | 1234          | 1234          |
 | TOTAL             | 1000          | 100000        |
 | START             | 0             | 0             |
 | DIFFICULTY        | 1000	        | 100000        |
-| REP\_PROB\_PERCENT| 0             | 0 			|
-| DELAY_US          | 100000        | 100000  		|
-| PRIO_LAMBDA       | 0	            | 0				|
+| REP\_PROB\_PERCENT| 0             | 0 			      |
+| DELAY_US          | 100000        | 100000  		  |
+| PRIO_LAMBDA       | 0	            | 0				      |
 
 
 #### Testing
@@ -291,14 +305,14 @@ The 'Linear Search' here is simply the version from the server on the master bra
 
 | Run          | Linear Search 1  | Random Search 1	 | Master Server 2  | Random Search 2  |
 | -------------|:----------------:|:----------------:|:----------------:|:----------------:|
-| First run    | 6129			  | 5649			 | 53117 			| 323742           |
-| Second run   | 5604		      | 5466			 | 57066		    | 333272           |
-| Third run    | 5291		 	  | 5681			 |                  | 288387           |
-| Fourth run   | 5733  		 	  | 5427			 |		    	    | 324619           |
-| Fifth run    | 6296		 	  | 5314			 |				    | 238173           |
+| First run    | 6129			        | 5649			       | 53117 			      | 323742           |
+| Second run   | 5604		          | 5466			       | 57066		        | 333272           |
+| Third run    | 5291		 	        | 5681			       |                  | 288387           |
+| Fourth run   | 5733  		 	      | 5427			       |		    	        | 324619           |
+| Fifth run    | 6296		 	        | 5314			       |				          | 238173           |
 
 
-####Discussion
+#### Discussion
 Even though the best case scenario for the random search is O(1), the worst case scenario is O(Infinity). Since there is no check to make sure that a randomly generated number has not been generated and tested before, it can keep infinitly checking the same wrong number or numbers over and over again. For the linear search the best case scenario is also O(1) if the hashed number is the starting number. But unlike the random search the worst case scenario is O(n). So even if the hashed number is the sum of the start value and the difficulty, there will at most be a number of searches equal to the difficulty - 1000 and 1000000 for my tests and 30000000 for the milestone and final test.
 
 #### Conclusion
