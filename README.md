@@ -321,8 +321,67 @@ With smaller difficulty and total number of requests, the two algorithms appeare
 
 
 
+### Scheduling Threads with a Priority-based Cost Function
+###### Author: Matthew Christopher Sinnott, s191989
+###### Branch: threadpool_priority
+
+In this experiment, the goal is to optimize the score by choosing tasks based on their expected value. 
+This value is computed to be $$(h_val - l_val)/(priority)$$ Elements are put into a priority queue, 
+implemented as a linked list, in a standard consumer-producer pattern. Worker threads then draw from this queue,
+taking the higher value computations first, and run them to completion. For these tests, I set the number of 
+threads in the worker threadpool to be 4. I compared the run to the base code, turned in for the milestone,
+as well as the threadpool code without the priority queue - a simple FIFO.
+
+#### Setup
+All tests were run on my laptop, in the Vagrant test enviornment, with no other user programs running except for top.
+Cursory visual inspection of CPU load validates that other programs were not consuming resources and that the
+load of the server was stable. The tests were done with the provided `run-client-final.sh` script. No compiler
+optimizations were used.
+
+#### Run Configuration 
+These settings are pulled directly from the provided `run-client-final.sh` script.
+
+| Setting           | Value Test 1  |
+| ------------------|:-------------:|
+| SERVER            | 192.168.101.10|
+| PORT              | 5003          |
+| SEED              | 0             |
+| TOTAL             | 1000          |
+| START             | 0             |
+| DIFFICULTY        | 30000000	    |
+| REP\_PROB\_PERCENT| 20            |
+| DELAY_US          | 750000        |
+| PRIO_LAMBDA       | 1.5	    |
 
 
+#### Results
 
+| Run   | Milestone     | FIFO	        | Priority    |
+| ------|:-------------:|:-------------:|:-----------:|
+| 1     | 1.659.408.195 |   991.050.918 | 949.179.470 | 
+| 2     | 1.763.463.515 | 1.094.465.803 | 925.395.983 |
+| 3     | 1.679.625.323 | 1.085.688.228 | 930.260.581 |
+| Avg   | 1.700.832.344 | 1.057.068.076 | 934.945.344 |
 
+Using the 4thread threadpool, regardless of scheduling is a huge performance improvement. However, the priority thread 
+acheives a noticeably better score than the FIFO - a 12.26% difference.
 
+#### Discussion
+Due to the structure of the priority queue - a linked-list - this code is most efficient when the requests are coming 
+at approximately the speed they can be solved or slower. If requests come too fast, then each request needs to be inserted 
+into the linked list individaully, leading to O(n^2) performance of insertion sort. This overhead bogs down the main thread
+and might interfere with netowrk recieve operations. A possible optimization might involve a scheduling thread that sorts the 
+incoming requests in batches, which speeds up sorting time but might result in longer latency on super high priority requests.
+
+It is also important to note that this scheme makes no guarantee about the time it would take for a request to be turned around.
+If requests are coming in fast enough, a low priority request might be put off indefinately. However, the cost function
+ensures that it minimizes the overall score - 1ms of delay matters more for a priority 2 request rather than of of priority 1.
+
+There are other possible cost functions to explore - either just use the priority of the request or do a calculation
+that also involves the time the request has been active. Additionally, these schemes do not take advantage of temporal
+locality - the known chance of repetition. This leads to unneeded extra computation.
+
+#### Conclusion
+Optimizing the cost function for task scheduling seems to show promise. Sorting requests based on priority results in a
+noticable score increase. This result of this experiment is as expected - a more intelligent scheduling algorithm will
+outperform a simple FIFO.
