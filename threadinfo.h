@@ -6,7 +6,6 @@
 
 struct ThreadInfo {
    int fs;
-   pthread_mutex_t* lock;
 };
 
 #endif

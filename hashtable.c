@@ -3,28 +3,58 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
+#include "hashpacket.h"
 
-#define SIZE 256
+pthread_mutex_t hashTableLock;
+
+#define MULTIPLIER 37
+#define SIZE 4096
 #define HASH_SIZE 32
-uint64_t hashArray[SIZE] = {0};
+struct HashPacket hashArray[SIZE] = {};
 
-uint8_t hashIndex(const uint8_t *key) {
-    uint8_t index = 0;
+void initHashTable() {
+  pthread_mutex_init(&hashTableLock, NULL);
+}
+
+unsigned long hashIndex(uint8_t key[32]) {
+    unsigned long index = 0;
 
     int i;
+
     for (i = 0; i < HASH_SIZE; ++i) {
-        index += key[i];
+        index = (index * MULTIPLIER + key[i]);
+    }
+    return index % SIZE;
+}
+
+uint64_t find(uint8_t key[32]) {
+  int hashKey = hashIndex(key);
+
+  while(hashArray[hashKey].value != 0) {
+    if (memcmp(hashArray[hashKey].key, key, HASH_SIZE*sizeof(uint8_t)) == 0){
+      return hashArray[hashKey].value;
+    }
+    hashKey = (hashKey + 1) % SIZE;
+  }
+
+  return 0;
+}
+// hej
+
+void insert(uint8_t key[], const uint64_t value) {
+    int hashKey = hashIndex(key);
+
+    while(hashArray[hashKey].value != 0) {
+      if (value == hashArray[hashKey].value){
+        return;
+      }
+      hashKey = (hashKey + 1) % SIZE;
     }
 
-    return index;
-}
+    pthread_mutex_lock(&hashTableLock);
+    hashArray[hashKey].value = value;
+    memcpy(hashArray[hashKey].key, key, HASH_SIZE*sizeof(uint8_t));
+    pthread_mutex_unlock(&hashTableLock);
 
-uint64_t find(uint8_t *key) {
-  return hashArray[hashIndex(key)];
-}
-// hej 
-
-void insert(uint8_t *key, const uint64_t value) {
-    int hashKey = hashIndex(key);
-    hashArray[hashKey] = value;
 }

@@ -17,13 +17,9 @@ void *reversehashing(void *arg) {
     struct Packet packet;
     struct ThreadInfo *ti = (struct ThreadInfo*) arg;
 
-
     uint8_t testHash[32];
-    pthread_mutex_t* lock = (ti->lock);
     int fs = ti->fs;
     int n;
-
-
 
     /* Receive */
     bzero((char *)&packet, sizeof(packet));
@@ -44,13 +40,12 @@ void *reversehashing(void *arg) {
     uint8_t theHash[32];
 
     // -- CHECK IF RECEIVED HASH IS A KNOWN HASH (IN HASHTABLE) AND SEND ANSWER TO CLIENT IF IT IS:
-    pthread_mutex_lock(lock);
     uint64_t foundAnswer = find(packet.hash);
-    pthread_mutex_unlock(lock);
     // printf("\nFOUND value:  %" PRIu64, foundAnswer);
 
     bzero(testHash, 32);
     SHA256((const unsigned char*) &foundAnswer, 8, testHash);
+    
 
 
     if (foundAnswer != 0 && testcmp(testHash, packet.hash, sizeof(testHash)) == 0){
@@ -74,13 +69,12 @@ void *reversehashing(void *arg) {
           break;
         }
       }
-      pthread_mutex_lock(lock);
+
       insert(packet.hash, answer);
-      pthread_mutex_unlock(lock);
-      
+
       answer = htobe64(answer);
       n = write(fs, &answer, 8);
-      
+
       if(n < 0) {
           perror("ERROR writing to socket");
           exit(1);
@@ -95,7 +89,7 @@ void *reversehashing(void *arg) {
 }
 
 // Optimization of memcmp
-// Main source: https://macosxfilerecovery.com/faster-memory-comparison-in-c/ 
+// Main source: https://macosxfilerecovery.com/faster-memory-comparison-in-c/
 int testcmp(const unsigned char *hash1, const unsigned char *hash2, unsigned int length) {
   if (length >= 4) { // Check if value is aligned in a 4-byte boundary.
     int diff = *(int *)hash1 - *(int *)hash2;

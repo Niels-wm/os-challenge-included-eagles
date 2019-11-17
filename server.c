@@ -15,12 +15,12 @@
 #include <netinet/in.h>
 
 #include <string.h>
+#include "hashtable.h"
 
 #define PORT 5003
 #define THREAD_AMOUNT 5
 
 int* threadAmount;
-pthread_mutex_t* lock;
 struct Packet packets[100];
 
 int main(int argc, char *argv[]) {
@@ -28,8 +28,7 @@ int main(int argc, char *argv[]) {
     struct sockaddr_in serverAddr, clientAddr;
     socklen_t clientAddrSize;
     int i, err;
-    lock = malloc(sizeof(pthread_mutex_t));
-    pthread_mutex_init(lock, NULL);
+    initHashTable();
 
     //pthread_t thread;
 
@@ -82,11 +81,10 @@ int main(int argc, char *argv[]) {
             }
             struct ThreadInfo* ti = malloc(sizeof(struct ThreadInfo));
             ti->fs = newSockFileDescripter;
-            ti->lock = lock;
-			
+
             // For each client request creates a thread and assign the request to it to process
             err = pthread_create(&tid[i%THREAD_AMOUNT], NULL, reversehashing, ti);
-			
+
             // pthread_join(tid[(i)%THREAD_AMOUNT], NULL);
             if (err != 0) {
                 perror("ERROR creating thread");
