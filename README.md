@@ -146,24 +146,23 @@ Looking at the results there are some small noticeable differences when comparin
 
 ## Parallelization
 ### Overall Motivation
-###### Author: Niels With Mikkelsen, s174290
+###### Branch: threads and the milestone submission
 
 This overall experiment seeks to figure out how much (if any) we can benefit from parallelization, i.e. handling multiple client request simultaneously. When it comes to parallelization there are several different ways to go about it, in the next 3 experiments we will try to find the best one.
 
-The reason we at all bother to do these experiments is because the computer which are running the test have a multi-core CPU with 4 CPU's.
+The reason we at all bother to do these experiments is because the computer which are running the test have a multi-core CPU with 4 cores. Splitting the workload between these 4 cores should result in a speed boost.
 
 
-### Sequential Model vs Process Model
+## Sequential Model vs Process Model
 ###### Author: Niels With Mikkelsen, s174290
-In this experiment we want to compare a implementation using only one process (sequential) and a implementation using multiple processes (concurrent)
+In this experiment we want to compare an implementation using only one process (sequential) and an implementation using multiple processes (concurrent). The motivation for this experiment should be obvious: We think that it is faster to handle multiple client request concurrently than handling every request sequentially and thus we will test it.
 
-The sequential model is probably the simplest working implementation of the challenge. The server accepts one client request at a time, calculate the reversed hash and sends back the answer to the client. I believe that this implementation will be the slowest one, because it is the minimum viable product (MVP) for accomplishing 100% reliability and has no optimizations. It is mainly used for see the effect of the process model.
+The sequential model is probably the simplest working implementation of the challenge. The server accepts one client request at a time, calculate the reversed hash and sends back the answer to the client. I believe that this implementation will be the slowest one, because it is the minimum viable product (MVP) for accomplishing 100% reliability and has no optimizations.
 
-
-The process model is a little more interesting. Every time the server receives a client request a new process is created using the **fork** system call. The **fork** system call copies its address space to the new child process, this way there is no shared memory (critical sections) and thus no need for synchronisation. I believe that this implementation will be faster than the sequential model because we make use of the multi-core CPU i.e. we can have multiple processes working on diffrent requests.
+The process model is a little more interesting. Every time the server receives a client request a new process is created using the **fork** system call. The **fork** system call copies the entire address space to the new child process, this way there is no shared memory (critical sections) and thus no need for synchronisation. I believe that this implementation will be faster than the sequential model because we make use of the multi-core CPU i.e. we can have multiple processes working on diffrent requests.
 
 #### Setup
-All tests regarding this experiment has been executed on the same computer, we have tried to keep the workload constant during the test session, however this is nearly impossible and is a possible error. The configuration parameters of the client was the following:
+All tests regarding this experiment has been executed on the same computer, we have tried to keep the workload constant during the test session, however this is nearly impossible and background activity could result in errors. The configuration parameters of the client was the following:
 
 ##### Run Configuration
 
@@ -192,20 +191,19 @@ Below are the results of the tests:
 
 
 #### Discussion and Conclusion
-Looking at the results there is a noticeable difference when comparing the averages, the process model is clearly faster that the sequential model. However, the process model implementation still has 2 major weakness when it comes to speed. 1) It has to copy the entire address space every time it creates a child process. 2) It starts more processes than we have CPU’s, this means that the scheduler has to do context switches quite often. Let’s first try to solve the first weakness by using threads (see section below).
+Looking at the results there is a noticeable difference when comparing the averages, the process model is clearly faster that the sequential model. By simply creating a new process for every client request we never have to wait for any process to end before creating a new one. However, by starting more processes than we have CPU cores, the scheduler has to do context switches quite often, for processes this is a heavy task and takes some time. The process model also has another major weakness when it comes to speed, It has to copy the entire address space every time it creates a child process. In the next experiment we will try to implement a model using threads, threads will solve the problem with coping the address space and improve the time to make context switches.
 
-
-### Process Model vs Thread Model
+## Process Model vs Thread Model
 ###### Author: Niels With Mikkelsen, s174290
-In this experiment we want to compare an implementation using multiple processes and an implementation using multiple threads.
+In this experiment we want to compare an implementation using multiple processes and an implementation using multiple threads. The motivation for this experiment is to solve the weakness described in "Discussion and Conclison" the experiment above.
 
 The process model is described in the "Sequential Model vs Process Model" experiment.
 
-The thread model is somehow similar to the process model however threads are more lightweight than processes and thus changing threads is much faster than changing processes and creating and terminating threads is also much faster. Furthermore, threads share the same address space as opposite to processes. For our challenge, which are centered around speed, this sounds very promising. In our implementation we have a fixed number of maximum threads (In this experiment the maximum thread counter is set to 50). In this experiment we use first in first out (FIFO) scheduling to start and wait for threads i.e. when we have started the maximum number of threads we call join() on the thread which was first started, (This can be a problem discuss) and start the new thread when join() returns. I believe that the Thread model should be faster than the process model because threads are much more lightweight and don't have to copy the entire address space every time a new thread is started.
+The thread model is somehow similar to the process model however threads are more lightweight than processes and thus changing threads is much faster than changing processes and creating and terminating threads is also much faster. Furthermore, threads share the same address space as opposite to processes. For our challenge, which are centered around speed, this sounds very promising. In our implementation we have a fixed number of maximum threads (In this experiment the maximum thread counter is set to 50). In this experiment we use first in first out (FIFO) scheduling to start and wait for threads, i.e. when we have started the maximum number of threads we call join() on the thread which was first started, and start the new thread when join() returns. I believe that the Thread model should be faster than the process model because threads are much more lightweight and don't have to copy the entire address space every time a new thread is started.
 
 
 #### Setup
-All tests regarding this experiment has been executed on the same computer, we have tried to keep the workload constant during the test session, however this is nearly impossible and is a possible error. The configuration parameters of the client was the following:
+All tests regarding this experiment has been executed on the same computer, we have tried to keep the workload constant during the test session, however this is nearly impossible and background activity could result in errors. The configuration parameters of the client was the following:
 
 ##### Run Configuration
 
@@ -234,20 +232,33 @@ Below are the results of the tests:
 
 
 #### Discussion and Conclusion
-Again, looking at the result there is a noticeable difference when comparing the averages, the thread model is faster than the process model. However, there are still some problem with the thread model. 1) It starts more threads than we have CPU's (Problem 2 from Sequential Model vs Process Model experiment). 2) Threads can become idle because of the FIFO implementation e.g. if the first thread takes a very long time to compute and the next 49 threads finished before the first thread, then all 49 threads will wait for the first thread to finish. This is of course bad and could be fixed in another experiment. I will now try to fix the problem with having more threads than CPU's (see section below).
+Again, looking at the result there is a noticeable difference when comparing the averages, the thread model is faster than the process model. However, there are still some problem with the thread model. 1) It starts more threads than we have CPU cores, which result in context switches. 2) Threads can become idle because of the FIFO implementation e.g. if the first thread takes a very long time to compute and the next 49 threads finished before the first thread, then all 49 threads will wait for the first thread to finish. This is of course very bad and could be fixed in another experiment. We will now try to fix the problem with having more threads than CPU cores.
 
 
-
-### Optimizing Maximum Number Threads
+## Optimizing Maximum Number Threads
 ###### Author: Niels With Mikkelsen, s174290
-In this experiment we want to address the problem with having more threads than CPU's, this should be as simple as setting the number of threads equal to the number of CPU's, however we want to know which number of threads actually give us the best performance.
+In this experiment we want to address the problem with having more threads than CPU cores, the reason that this is a problem is, that if we start more threads/processes than we have cores, the scheduler have to do context switches (which takes time). The motivation is to avoid making these context switches. This should be as simple as setting the number of threads equal to the number of cores, however we will try some different number of threads to see which number actually give us the best performance.
 
+#### Setup
+All tests regarding this experiment has been executed on the same computer, we have tried to keep the workload constant during the test session, however this is nearly impossible and background activity could result in errors. The configuration parameters of the client was the following:
 
-We did the experiment by changing the maximum number of threads to 3, 4, 5, 6 and 50. The result can be found in the Results section. The listed number of threads is only how many threads that are actively calculating client requests, in addition to those there are also the main thread which is managing the threads as well as setting up the server initially.
+##### Run Configuration
+
+| Setting           | Value         |
+| ------------------|:-------------:|
+| SERVER            | 192.168.101.10|
+| PORT              | 5003          |
+| SEED              | 3435245       |
+| TOTAL             | 100           |
+| START             | 0             |
+| DIFFICULTY        | 30000000      |
+| REP\_PROB\_PERCENT| 20            |
+| DELAY_US          | 75000         |
+| PRIO_LAMBDA       | 1.50          |
 
 
 #### Results
-Below are the results of the tests.
+We did the experiment by changing the maximum number of threads to 3, 4, 5, 6 and 50. The result can be found in the table below. The listed number of threads is only how many threads that are actively calculating client requests, in addition to those there are also the main thread which is managing the threads as well as setting up the server initially.
 
 | Run          | 3 threads         | 4 threads        | 5 threads        | 6 threads        | 50 threads
 | -------------|:----------------:|:----------------:|:----------------:|:----------------:|:----------------:
@@ -261,7 +272,7 @@ Below is a graphical representation of the results:
 ![ThreadsPicture](Threads.png)
 
 #### Discussion and Conclusion
-Surprisingly the best number of threads seems to 5. We expected that the best number would be 4 (5 threads in total) because the main thread (the one setting up the server and managing the other thread) is idle most of the time, so it should be worth to switch between this tread and a thread handling client requests.
+Looking at the graph the best number of threads seems to be 5. We initially expected that the best number would be 3 (4 including the main thread) because this would match the number of cores, and thereby we would avoid making expensive context switches. However, a valid point is that 4 (5 including the main thread) could result in a better performance, because the main thread is idle most of the time, so it could be worth to switch between the main tread and a thread handling client request. The reason that 5 is the best is more difficult to answer, a guess could be that it is better to start more threads because of the FIFO problem described in the "Process Model vs Thread Model" experiment (Idle threads if the first one takes a lot of time).
 
 
 
@@ -275,7 +286,10 @@ Surprisingly the best number of threads seems to 5. We expected that the best nu
 
 
 
-### Linear Search vs Random Search
+
+
+
+## Linear Search vs Random Search
 ###### Author: Helena Gunia Schiøtz, s174279
 ###### Branch: random_algo
 It might be possible to speed up the brute force algorithm for finding a hash that isn't in the hashtable. In the current version of the server a linear search is used, but I will try to see if this can be improved upon by using a random search instead of the linear. Sometimes when there are no factors to improve a search futher, it is worth trying a random search to see if that might improve this timeconsuming part of our server.
@@ -321,7 +335,19 @@ With smaller difficulty and total number of requests, the two algorithms appeare
 
 
 
-### Scheduling Threads with a Priority-based Cost Function
+
+
+
+
+
+
+
+
+
+
+
+
+## Scheduling Threads with a Priority-based Cost Function
 ###### Author: Matthew Christopher Sinnott, s191989
 ###### Branch: threadpool_priority
 
