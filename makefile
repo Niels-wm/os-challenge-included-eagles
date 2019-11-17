@@ -1,6 +1,6 @@
 # Makefile
 
-CFLAGS = -Wall -g
+CFLAGS = -Wall -g -O3
 CC = gcc
 LIBS = -lcrypto -pthread
 
@@ -10,3 +10,4 @@ all:
 
 clean:
 	rm -f server
+	rm -f *.o
