@@ -421,7 +421,7 @@ In a real world scenario an operating system might receive various types of task
 For this experiment a hash table with open addressing has been implemented. In case of a collision linear probing is used to find an empty slot in the hash table. The hash table is optimized for the final os-challenge which in total sends 1000 requests. To minimize collision the size of the hash table was chosen to be 4096. Furthermore experiments with different hash functions has been carried out to spread out the requests evenly in the hash table and avoid collision.
 
 #### Setup
-The tests stated below have all run on the same machine. Five tests have been performed before and after the implementation of the hash table. The tests copies most of the settings from the `run-client-final.sh`-script, with the exeption of amount of request which has been reduced to 100. Please see the implementation in the `hash-tables`-branch.
+The tests stated below have all run on the same machine. Five tests have been performed before and after the implementation of the hash table. The tests copies most of the settings from the `run-client-final.sh`-script, with the exception of amount of request which has been reduced to 100. Please see the implementation in the `hash-tables`-branch. For each test the seed has been changed but for one test the seed was the same for both versions.
 
 ##### Run Configuration
 | Setting           | Value         |
@@ -452,19 +452,17 @@ All tests have run on the same computer (using Vagrant). The specifications of t
 | OS                | macOS 10.14.6 |
 
 
-##### Possible Errors
-Although all tests have been conducted on the same machine, with WIFI and Bluetooth disabled. There is still the possibility for errors coming from background OS tasks. These I have tried to keep at a minimum by disabling as much as possible, such as anti-virus programs etc. The tests have been conducted on a laptop with the battery being at 100% and plugged in to power and on a cooling pad in order to try and manage thermal conditions. The tests were run back-to-back.
-
-
 #### Results
 Below are the results of the nine runs. Thousand separators are added for easier reading.
 
-| Run          | Before           |With Round-Robin  |With FIFO        |
-| -------------|:----------------:|:----------------:|:---------------:|
-| First run    | 85.753.653 	   | 86.106.845       | 86.699.428      |
-| Second run   | 85.787.545	       | 85.518.831       | 86.446.192      |
-| Third run    | 87.488.100   	   | 85.497.092       | 86.571.903      |
-| **Median**   |**85.787.545**    |**85.518.831**    |**86.571.903**   |
+| Run          | Seed         | Without hash table  | With hash table  |
+| -------------|:------------:|:-------------------:|:----------------:|
+| First run    | 85.753.653   | 85.753.653   	      | 86.106.845       |
+| Second run   | 85.787.545	  | 85.787.545	        | 85.518.831       |
+| Third run    | 87.488.100   | 87.488.100    	    | 85.497.092       |
+| Fifth run    | 87.488.100   |  87.488.100         | 85.497.092       |
+| Sixth run    | 87.488.100   | 87.488.100    	    | 85.497.092       |
+| **Median**   |**85.787.545**| **85.787.545**      |**85.518.831**    |
 
 The results also indicated that nearly all prioritization levels were used in the tests. Ranging between level 1 and level 16.
 
