@@ -18,9 +18,8 @@
 
 int main(int argc, char *argv[]){
   int sockFileDescripter;
-  struct sockaddr_in serverAddr, clientAddr;
-  socklen_t clientAddrSize;
-  int n, pid, err;
+  struct sockaddr_in serverAddr;
+  int  err;
   initHashTable();
 
   // initReverseHashing();
@@ -59,7 +58,6 @@ int main(int argc, char *argv[]){
   // initConsumer(sockFileDescripter);
 
   int producerCount = 10;
-  pthread_t tIdProducer;
   pthread_t tIdsProducers[producerCount];
 
   for (size_t i = 0; i < producerCount; i++) {

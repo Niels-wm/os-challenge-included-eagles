@@ -8,6 +8,7 @@
 #include <netdb.h>
 #include <pthread.h>
 #include "hashtable.h"
+#include <unistd.h>
 // #include <netinet/in.h>
 
 // sem_t* emptyCount;
@@ -78,7 +79,11 @@ void *produceToJobQueue(void *args){
       }
     }
     answer = htobe64(answer);
-    write(fd, &answer, 8);
+    err = write(fd, &answer, 8);
+    if (err < 0) {
+      perror("Error writing");
+      exit(1);
+    }
   }
   return NULL;
 }

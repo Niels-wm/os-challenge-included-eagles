@@ -38,7 +38,7 @@ uint64_t reversehashing(uint64_t start, uint64_t end, uint8_t *hash){
   end = be64toh(end);
 
   for (answer = start; answer <= end; answer++){
-    SHA256((char*) &answer, 8, testHash);
+    SHA256((const unsigned char *) &answer, 8, testHash);
     if (memcmp(testHash, hash, sizeof(testHash)) == 0) {
       printf("FOUND ANSWER: %" PRIu64, answer);
       // pthread_mutex_lock(&hashTableLock);
@@ -48,4 +48,5 @@ uint64_t reversehashing(uint64_t start, uint64_t end, uint8_t *hash){
       return answer;
     }
   }
+  return answer;
 }
