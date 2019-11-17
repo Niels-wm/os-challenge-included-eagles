@@ -49,7 +49,6 @@ void *reversehashing(void *arg) {
 
 
     if (foundAnswer != 0){
-      printf("\nFOUND in hashtable\n");
       foundAnswer = be64toh(foundAnswer);
       n = write(fs, &foundAnswer, 8);
 
