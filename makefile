@@ -1,6 +1,6 @@
 # Makefile
 
-CFLAG = -Wall -g
+CFLAGS = -Wall -g
 CC = gcc
 LIBS = -lcrypto -pthread
 
