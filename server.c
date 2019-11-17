@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
     }
 
     /* Listen */
-    listen(sockFileDescripter, 500);
+    listen(sockFileDescripter, 1000);
     clientAddrSize = sizeof(clientAddr);
 
     i = 0;
