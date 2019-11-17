@@ -1,12 +1,16 @@
 #include "packet.h"
 #include "messages.h"
 
+#include <unistd.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
 #include "threadinfo.h"
 #include "hashtable.h"
+
+int testcmp(const unsigned char *hash1, const unsigned char *hash2, unsigned int length);
 
 void *reversehashing(void *arg) {
 
@@ -17,7 +21,7 @@ void *reversehashing(void *arg) {
     uint8_t testHash[32];
     pthread_mutex_t* lock = (ti->lock);
     int fs = ti->fs;
-    int i, n;
+    int n;
 
 
 
@@ -46,7 +50,7 @@ void *reversehashing(void *arg) {
     // printf("\nFOUND value:  %" PRIu64, foundAnswer);
 
     bzero(testHash, 32);
-    SHA256((char*) &foundAnswer, 8, testHash);
+    SHA256((const unsigned char*) &foundAnswer, 8, testHash);
 
 
     if (foundAnswer != 0 && testcmp(testHash, packet.hash, sizeof(testHash)) == 0){
@@ -61,9 +65,9 @@ void *reversehashing(void *arg) {
     // If no value found in hash table use brute force algorithm
     }
     else {
-      for (answer; answer <= packet.end; answer++){
+      for (answer = packet.start; answer <= packet.end; answer++){
         bzero(theHash, 32);
-        unsigned char *hashedNumber = SHA256((char*) &answer, 8, theHash);
+        SHA256((const unsigned char*) &answer, 8, theHash);
 
         if (testcmp(theHash, packet.hash, sizeof(theHash)) == 0) {
           //printf("\nFound a match, with:  %" PRIu64, answer);

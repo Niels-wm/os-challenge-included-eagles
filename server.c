@@ -4,6 +4,8 @@
 #include "packet.h"
 #include "reversehashing.h"
 
+#include <unistd.h>
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <pthread.h>
@@ -25,7 +27,7 @@ int main(int argc, char *argv[]) {
     int sockFileDescripter, newSockFileDescripter;
     struct sockaddr_in serverAddr, clientAddr;
     socklen_t clientAddrSize;
-    int n, i, pid, err;
+    int i, err;
     lock = malloc(sizeof(pthread_mutex_t));
     pthread_mutex_init(lock, NULL);
 
