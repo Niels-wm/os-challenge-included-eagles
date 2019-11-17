@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include "hashtable.h"
 #include <unistd.h>
+
 // #include <netinet/in.h>
 
 // sem_t* emptyCount;
@@ -70,7 +71,7 @@ void *produceToJobQueue(void *args){
       start = be64toh(packet.start);
 
       for (answer = start; answer <= end; answer++){
-        SHA256((char*) &answer, 8, testHash);
+        SHA256((const unsigned char*) &answer, 8, testHash);
         if (memcmp(testHash, packet.hash, 32 * sizeof(uint8_t)) == 0) {
           insert(packet.hash, answer);
           break;
