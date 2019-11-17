@@ -13,7 +13,7 @@ The following features are what is implemented in our final submission to the OS
 ###### Author: Lasse Pedersen, s174253
 
 #### Experiment Motivation
-I found out about the possibility to prioritize each individual thread in Linux using the Pthread-library by changing the threads attributes. This however requires you to explicitly set the scheduler policy, which can also be done through the Pthread library. The reason for the experiment was that I was interested in knowing if the inbuilt scheduler could be manipulated into prioritizing those specific threads who are specifically assigned to running the reverse hashing algorithm. The mindset was that if these threads could be given priority over system tasks, an improvement in performance would hopefully be noticeable. But before being able to set the thread-priority you first have to assign the scheduler policy. The default Linux policy is 'SCHED\_OTHER', which is a time-sharing round-robin scheduler who will assign each task a certain amount of time pending on what other tasks that are running in the system. There are a number of alternative policies, but I will mainly be focusing on SCHED\_FIFO and SCHED\_RR, who both are real-time policies that will pre-empt (interrupt) every other task. These will allow me to set their individual thread priority (SCHED\_OTHER does not allow for setting priorities). For proof of concept the thread priority will be loosely based on the task priority. 
+I found out about the possibility to prioritize each individual thread in Linux using the Pthread-library by changing the threads attributes. This however requires you to explicitly set the scheduler policy, which can also be done through the Pthread library. The reason for the experiment was that I was interested in knowing if the inbuilt scheduler could be manipulated into prioritizing those specific threads who are specifically assigned to running the reverse hashing algorithm. The mindset was that if these threads could be given priority over system tasks, an improvement in performance would hopefully be noticeable. But before being able to set the thread-priority you first have to assign the scheduler policy. The default Linux policy is 'SCHED\_OTHER', which is a time-sharing round-robin scheduler who will assign each task a certain amount of time pending on what other tasks that are running in the system. There are a number of alternative policies, but I will mainly be focusing on SCHED\_FIFO and SCHED\_RR, who both are real-time policies that will pre-empt (interrupt) every other task. These will allow me to set their individual thread priority (SCHED\_OTHER does not allow for setting priorities). For proof of concept the thread priority will be loosely based on the task priority.
 
 
 
@@ -148,7 +148,7 @@ Looking at the results there are some small noticeable differences when comparin
 ### Overall Motivation
 ###### Author: Niels With Mikkelsen, s174290
 
-This overall experiment seeks to figure out how much (if any) we can benefit from parallelization, i.e. handling multiple client request simultaneously. When it comes to parallelization there are several diffrent ways to go about it, in the next 3 experiments we will try to find the best one. 
+This overall experiment seeks to figure out how much (if any) we can benefit from parallelization, i.e. handling multiple client request simultaneously. When it comes to parallelization there are several different ways to go about it, in the next 3 experiments we will try to find the best one.
 
 The reason we at all bother to do these experiments is because the computer which are running the test have a multi-core CPU with 4 CPU's.
 
@@ -157,13 +157,13 @@ The reason we at all bother to do these experiments is because the computer whic
 ###### Author: Niels With Mikkelsen, s174290
 In this experiment we want to compare a implementation using only one process (sequential) and a implementation using multiple processes (concurrent)
 
-The sequential model is probably the simplest working implementation of the challenge. The server accepts one client request at a time, calculate the reversed hash and sends back the answer to the client. I believe that this implementation will be the slowest one, because it is the minimum viable product (MVP) for accomplishing 100% reliability and has no optimizations. It is mainly used for see the effect of the process model. 
+The sequential model is probably the simplest working implementation of the challenge. The server accepts one client request at a time, calculate the reversed hash and sends back the answer to the client. I believe that this implementation will be the slowest one, because it is the minimum viable product (MVP) for accomplishing 100% reliability and has no optimizations. It is mainly used for see the effect of the process model.
 
 
 The process model is a little more interesting. Every time the server receives a client request a new process is created using the **fork** system call. The **fork** system call copies its address space to the new child process, this way there is no shared memory (critical sections) and thus no need for synchronisation. I believe that this implementation will be faster than the sequential model because we make use of the multi-core CPU i.e. we can have multiple processes working on diffrent requests.
 
 #### Setup
-All tests regarding this experiment has been executed on the same computer, we have tried to keep the workload constant during the test session, however this is nearly impossible and is a possible error. The configuration parameters of the client was the following: 
+All tests regarding this experiment has been executed on the same computer, we have tried to keep the workload constant during the test session, however this is nearly impossible and is a possible error. The configuration parameters of the client was the following:
 
 ##### Run Configuration
 
@@ -197,15 +197,15 @@ Looking at the results there is a noticeable difference when comparing the avera
 
 ### Process Model vs Thread Model
 ###### Author: Niels With Mikkelsen, s174290
-In this experiment we want to compare an implementation using multiple processes and an implementation using multiple threads. 
+In this experiment we want to compare an implementation using multiple processes and an implementation using multiple threads.
 
-The process model is described in the "Sequential Model vs Process Model" experiment. 
+The process model is described in the "Sequential Model vs Process Model" experiment.
 
 The thread model is somehow similar to the process model however threads are more lightweight than processes and thus changing threads is much faster than changing processes and creating and terminating threads is also much faster. Furthermore, threads share the same address space as opposite to processes. For our challenge, which are centered around speed, this sounds very promising. In our implementation we have a fixed number of maximum threads (In this experiment the maximum thread counter is set to 50). In this experiment we use first in first out (FIFO) scheduling to start and wait for threads i.e. when we have started the maximum number of threads we call join() on the thread which was first started, (This can be a problem discuss) and start the new thread when join() returns. I believe that the Thread model should be faster than the process model because threads are much more lightweight and don't have to copy the entire address space every time a new thread is started.
 
 
 #### Setup
-All tests regarding this experiment has been executed on the same computer, we have tried to keep the workload constant during the test session, however this is nearly impossible and is a possible error. The configuration parameters of the client was the following: 
+All tests regarding this experiment has been executed on the same computer, we have tried to keep the workload constant during the test session, however this is nearly impossible and is a possible error. The configuration parameters of the client was the following:
 
 ##### Run Configuration
 
@@ -240,7 +240,7 @@ Again, looking at the result there is a noticeable difference when comparing the
 
 ### Optimizing Maximum Number Threads
 ###### Author: Niels With Mikkelsen, s174290
-In this experiment we want to address the problem with having more threads than CPU's, this should be as simple as setting the number of threads equal to the number of CPU's, however we want to know which number of threads actually give us the best performance. 
+In this experiment we want to address the problem with having more threads than CPU's, this should be as simple as setting the number of threads equal to the number of CPU's, however we want to know which number of threads actually give us the best performance.
 
 
 We did the experiment by changing the maximum number of threads to 3, 4, 5, 6 and 50. The result can be found in the Results section. The listed number of threads is only how many threads that are actively calculating client requests, in addition to those there are also the main thread which is managing the threads as well as setting up the server initially.
@@ -284,7 +284,7 @@ It might be possible to speed up the brute force algorithm for finding a hash th
 For a both tests a simple run-client with custom difficulty and total ammount is used, as my computer can run neither the milestone nor the final client due to not having enough cores to handle it. The total ammount of number of threads is set to 2 for all of these tests.
 Two tests are run, to test how the random search scales with increasing difficulty and increasing total number of requests. Since the rinal-run-clint.sh can't be used in these tests, i will try to get as close as possible.
 
-##### Run Configuration 
+##### Run Configuration
 The repetition probability is set to 0 to maximize the probability of the brute force being called, and since the priority is of no importance here, it is set to 0.
 
 | Setting           | Value Test 1  | Value Test 2  |
@@ -325,10 +325,10 @@ With smaller difficulty and total number of requests, the two algorithms appeare
 ###### Author: Matthew Christopher Sinnott, s191989
 ###### Branch: threadpool_priority
 
-In this experiment, the goal is to optimize the score by choosing tasks based on their expected value. 
-This value is computed to be (h_val - l_val)/(priority). Elements are put into a priority queue, 
+In this experiment, the goal is to optimize the score by choosing tasks based on their expected value.
+This value is computed to be (h_val - l_val)/(priority). Elements are put into a priority queue,
 implemented as a linked list, in a standard consumer-producer pattern. Worker threads then draw from this queue,
-taking the higher value computations first, and run them to completion. For these tests, I set the number of 
+taking the higher value computations first, and run them to completion. For these tests, I set the number of
 threads in the worker threadpool to be 4. I compared the run to the base code, turned in for the milestone,
 as well as the threadpool code without the priority queue - a simple FIFO.
 
@@ -338,7 +338,7 @@ Cursory visual inspection of CPU load validates that other programs were not con
 load of the server was stable. The tests were done with the provided `run-client-final.sh` script. No compiler
 optimizations were used.
 
-#### Run Configuration 
+#### Run Configuration
 These settings are pulled directly from the provided `run-client-final.sh` script.
 
 | Setting           | Value Test 1  |
@@ -358,19 +358,19 @@ These settings are pulled directly from the provided `run-client-final.sh` scrip
 
 | Run   | Milestone     | FIFO	        | Priority    |
 | ------|:-------------:|:-------------:|:-----------:|
-| 1     | 1.659.408.195 |   991.050.918 | 949.179.470 | 
+| 1     | 1.659.408.195 |   991.050.918 | 949.179.470 |
 | 2     | 1.763.463.515 | 1.094.465.803 | 925.395.983 |
 | 3     | 1.679.625.323 | 1.085.688.228 | 930.260.581 |
 | Avg   | 1.700.832.344 | 1.057.068.076 | 934.945.344 |
 
-Using the 4thread threadpool, regardless of scheduling is a huge performance improvement. However, the priority thread 
+Using the 4thread threadpool, regardless of scheduling is a huge performance improvement. However, the priority thread
 acheives a noticeably better score than the FIFO - a 12.26% difference.
 
 #### Discussion
-Due to the structure of the priority queue - a linked-list - this code is most efficient when the requests are coming 
-at approximately the speed they can be solved or slower. If requests come too fast, then each request needs to be inserted 
+Due to the structure of the priority queue - a linked-list - this code is most efficient when the requests are coming
+at approximately the speed they can be solved or slower. If requests come too fast, then each request needs to be inserted
 into the linked list individaully, leading to O(n^2) performance of insertion sort. This overhead bogs down the main thread
-and might interfere with netowrk recieve operations. A possible optimization might involve a scheduling thread that sorts the 
+and might interfere with netowrk recieve operations. A possible optimization might involve a scheduling thread that sorts the
 incoming requests in batches, which speeds up sorting time but might result in longer latency on super high priority requests.
 
 It is also important to note that this scheme makes no guarantee about the time it would take for a request to be turned around.
@@ -383,5 +383,65 @@ locality - the known chance of repetition. This leads to unneeded extra computat
 
 #### Conclusion
 Optimizing the cost function for task scheduling seems to show promise. Sorting requests based on priority results in a
-noticable score increase. This result of this experiment is as expected - a more intelligent scheduling algorithm will
+noticeable score increase. This result of this experiment is as expected - a more intelligent scheduling algorithm will
 outperform a simple FIFO.
+
+## Caching Requests
+###### Author: Sebastian Arcos Specht, s164394
+
+#### Experiment Motivation
+In a real world scenario an operating system might receive various types of tasks, some of which may occur more frequent than others. It is therefore valuable to make the resource that are accessed very frequently easy-accessible. However, the way users use the operating system and access different resources is very individual and the operating system therefore has to be capable of adapting to the behavior of different users. Concretely, this means to have resources that are often used by an individual user in memory that is fast to access thereby making the tasks that the user often performs faster. In the OS-challenge this problem is described by having a repetition on the requests making it likely that a request is a duplicate of a previously sent request. A way of solving this issue is to have a cache where requests that have been solved, i.e. where the original value for the hash key has been found, can be saved. When a request with the same hash value is sent again the original value can be found quickly. In practice different types of caches can be implemented with different benefits and drawbacks. In this project, the first solution to this problem was to build a cache with a splay tree structure. A splay tree is a binary tree which has the property of maintaining a structure where recently accessed data elements are stored close to the root of the tree, meaning they can be found relatively easily. Another commonly used structure for caches is hash tables, which at the end was chosen to be implemented in this project. Hash tables have several advantages over splay trees if they are maintained well and have a proper hash function. An optimal hash function has an average time complexity for insert and find of O(1), which is better than for splay trees.
+
+For this experiment a hash table with open addressing has been implemented. In case of a collision linear probing is used to find an empty slot in the hash table. The hash table is optimized for the final os-challenge which in total sends 1000 requests. To minimize collision the size of the hash table was chosen to be 4096. Furthermore experiments with different hash functions has been carried out to spread out the requests evenly in the hash table and avoid collision.
+
+#### Setup
+The tests stated below have all run on the same machine. Five tests have been performed before and after the implementation of the hash table. The tests copies most of the settings from the `run-client-final.sh`-script, with the exeption of amount of request which has been reduced to 100. Please see the implementation in the `hash-tables`-branch.
+
+##### Run Configuration
+| Setting           | Value         |
+| ------------------|:-------------:|
+| SERVER            | 192.168.101.10|
+| PORT              | 5003          |
+| SEED              | 3435245       |
+| TOTAL             | 100           |
+| START             | 0             |
+| DIFFICULTY        | 30000000      |
+| REP\_PROB\_PERCENT| 20            |
+| DELAY_US          | 75000         |
+| PRIO_LAMBDA       | 0.30          |
+
+
+The results of the nine runs can be found in the Results-section.
+
+##### Hardware Specification
+All tests have run on the same computer (using Vagrant). The specifications of the computer is listed below:
+
+| Specification     | Value         |
+| ------------------|:-------------:|
+| CPU               | Intel i7      |
+| CPU clock speed   | 2.5 GHz       |
+| No. of CPU cores  | 4             |
+| RAM amount        | 16 GB         |
+| RAM type          | 1600 MHz DDR3 |
+| OS                | macOS 10.14.6 |
+
+
+##### Possible Errors
+Although all tests have been conducted on the same machine, with WIFI and Bluetooth disabled. There is still the possibility for errors coming from background OS tasks. These I have tried to keep at a minimum by disabling as much as possible, such as anti-virus programs etc. The tests have been conducted on a laptop with the battery being at 100% and plugged in to power and on a cooling pad in order to try and manage thermal conditions. The tests were run back-to-back.
+
+
+#### Results
+Below are the results of the nine runs. Thousand separators are added for easier reading.
+
+| Run          | Before           |With Round-Robin  |With FIFO        |
+| -------------|:----------------:|:----------------:|:---------------:|
+| First run    | 85.753.653 	   | 86.106.845       | 86.699.428      |
+| Second run   | 85.787.545	       | 85.518.831       | 86.446.192      |
+| Third run    | 87.488.100   	   | 85.497.092       | 86.571.903      |
+| **Median**   |**85.787.545**    |**85.518.831**    |**86.571.903**   |
+
+The results also indicated that nearly all prioritization levels were used in the tests. Ranging between level 1 and level 16.
+
+
+#### Conclusion
+The results indicated that there is no real performance benefit from manipulating the OS scheduler. The numbers fluctuate between being either slightly faster or slightly slower with the scheduler policy and thread prioritization set. So, in conclusion, I think the OS scheduler is perfectly alright at self-managing individual tasks and in an environment were all background tasks were kept at a minimum then the OS scheduler had really no other tasks to down prioritize (with or without the experiment implementation).
