@@ -17,7 +17,7 @@ void *reversehashing(void *arg) {
     struct Packet packet;
     struct ThreadInfo *ti = (struct ThreadInfo*) arg;
 
-    uint8_t testHash[32];
+    // uint8_t testHash[32];
     int fs = ti->fs;
     int n;
 
@@ -43,12 +43,12 @@ void *reversehashing(void *arg) {
     uint64_t foundAnswer = find(packet.hash);
     // printf("\nFOUND value:  %" PRIu64, foundAnswer);
 
-    bzero(testHash, 32);
-    SHA256((const unsigned char*) &foundAnswer, 8, testHash);
-    
+    // bzero(testHash, 32);
+    // SHA256((const unsigned char*) &foundAnswer, 8, testHash);
 
 
-    if (foundAnswer != 0 && testcmp(testHash, packet.hash, sizeof(testHash)) == 0){
+
+    if (foundAnswer != 0){
       printf("\nFOUND in hashtable\n");
       foundAnswer = be64toh(foundAnswer);
       n = write(fs, &foundAnswer, 8);
