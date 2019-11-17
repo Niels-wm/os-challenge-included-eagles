@@ -10,8 +10,6 @@
 #include "hashtable.h"
 #include <unistd.h>
 
-// #include <netinet/in.h>
-
 // sem_t* emptyCount;
 // sem_t* fillCount;
 // sem_t* queueLock;

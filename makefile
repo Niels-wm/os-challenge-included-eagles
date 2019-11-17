@@ -1,5 +1,4 @@
 # Makefile
-
 CC = gcc
 CFLAGS = -Wall -g -O3
 LIBS = -lcrypto -pthread
