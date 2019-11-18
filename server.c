@@ -59,8 +59,9 @@ int main(int argc, char *argv[]){
 
   int producerCount = 10;
   pthread_t tIdsProducers[producerCount];
+  int i;
 
-  for (size_t i = 0; i < producerCount; i++) {
+  for (i = 0; i < producerCount; i++) {
     err = pthread_create(&tIdsProducers[i], NULL, produceToJobQueue, NULL);
     if (err != 0) {
         perror("ERROR creating thread");
@@ -68,7 +69,7 @@ int main(int argc, char *argv[]){
     }
   }
 
-  for (size_t i = 0; i < producerCount; i++) {
+  for (i = 0; i < producerCount; i++) {
     pthread_join(tIdsProducers[i], NULL);
   }
 }

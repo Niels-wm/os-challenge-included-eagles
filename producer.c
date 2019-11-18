@@ -10,22 +10,10 @@
 #include "hashtable.h"
 #include <unistd.h>
 
-// sem_t* emptyCount;
-// sem_t* fillCount;
-// sem_t* queueLock;
 int socketFD;
-
-// struct Packet* jobQueue;
-
-// int* jobPos;
 
 
 void initProducer(int sockFD){
-  // emptyCount = queuePacket->jobEmptyCount;
-  // fillCount = queuePacket->jobFillCount;
-  // queueLock = queuePacket->jobQueueLock;
-  // jobQueue = queuePacket->queue;
-  // jobPos = queuePacket->jobPosition;
   socketFD = sockFD;
   printf("INITIALIZED PRODUCER\n" );
 }
@@ -40,7 +28,6 @@ void *produceToJobQueue(void *args){
   uint64_t start, end;
 
   bzero(testHash, 32);
-  // int counter = *jobPos;
 
   printf("Producer started\n");
 
