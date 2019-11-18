@@ -541,3 +541,24 @@ The more complex thread management implementation looks like an improvement over
 
 #### Conclusion
 The attempted improvement seems to be a small performance boost compared to the simpler benchmark, on average ~10.3 % faster. There seems to be a slightly higher variance between the benchmark run times compared to the implemented improvement, which would make sense as the improved version should be using all the available CPU cores more of the time - though some that time is spent on managing the threads.
+
+
+
+
+
+
+##Priority queing incoming requests
+###### Felix Larsen s174296
+###### Branch: felix
+
+The idea of having multiple different tasks, originates from the difference between the cursor moving across your screen, vs downloading the nth packet of a huge download. So in order to take care of the queing, i open all the packets as they arrive. The file descriptor and the packet is then moved into a linked list based on their priority. The main thread, then creates threads, that will take out the top of this que.
+
+
+
+####Setup
+
+As the older commits is not reliable on my machine(connection reset by peer). I havent been able to test against something that does not have priority queing. Therefore setup is kind of obsolete.
+
+####Conclusion
+I dont really have any, as i have no tests. I can only say, that i think this would have been faster.
+
