@@ -3,10 +3,18 @@ ___________________________________________________________________________
 # Final Submission
 The following features are what is implemented in our final submission to the OS Challenge.
 
-- Item 1
-- Item 2
+- Multithreading (4thread thread-pool)
+- Hash tables for caching
+- Process scheduling based on request priority
 
+Below is a list of the features who did not make the cut for the final implementation, mainly because they were tested to be slower during experimentation:
 
+- OS Scheduling
+- Random algorithm
+- Process model
+- Thread model
+- Optimization of memcmp
+- Complex thread model
 
 # Experiments
 ## Thread Prioritization
