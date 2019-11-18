@@ -3,6 +3,9 @@
 #define PACKET_H
 
 #include <inttypes.h>
+#include <stdbool.h>
+#include <pthread.h>
+
 
 struct Packet {
    uint8_t hash[32];
@@ -14,6 +17,10 @@ struct Packet {
 struct arg_struct {
     int fileDescripter;
     struct Packet packet;
+    bool* running;
+    pthread_mutex_t* lock_running;
+    int id;
+    pthread_t main_thread;
 };
 
 #endif

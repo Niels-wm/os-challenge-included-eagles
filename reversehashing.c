@@ -6,6 +6,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <sched.h>
+#include <signal.h>
 
 void *reversehashing(void *arg) {
     
@@ -15,6 +16,16 @@ void *reversehashing(void *arg) {
     int newSockFileDescripter = args -> fileDescripter;
     packet = args -> packet;
     int i, n;
+    //pthread_mutex_t lock_running = args->lock_running;
+
+    /*
+    pthread_mutex_lock(args->lock_running);
+    //printf(args->running ? "r: true\n" : "r: false\n");
+    *(args->running) = 1;
+    pthread_mutex_unlock(args->lock_running);
+    */
+
+    //printf(args->running ? "true\n" : "false\n");
 
 
     /* SHA 256 ALGO */ 
@@ -41,7 +52,16 @@ void *reversehashing(void *arg) {
         perror("ERROR writing to socket");
         exit(1);
     }
-    
+    //args->running = false;
+
+    pthread_mutex_lock(args->lock_running);
+    //printf(args->running ? "r: true\n" : "r: false\n");
+    *(args->running) = 0;
+    pthread_mutex_unlock(args->lock_running);
+
+    printf("%s%d\n", "Exiting thread: ", args->id);
+    pthread_kill(args->main_thread, SIGUSR1);
+
     close(newSockFileDescripter);
     
     free(args);
