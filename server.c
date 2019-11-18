@@ -32,7 +32,7 @@ pthread_mutex_t* lock_running;
 
 bool wait = false;
 void sig_func(int sig) {
-    printf("%s\n", "caught signal");
+    //printf("%s\n", "caught signal");
     signal(SIGUSR1, sig_func);
     wait = false;
 }
@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
     pthread_t main_thread = pthread_self();
     int priorities[NTHREADS];
     bool running[NTHREADS];
-    printf("\n\n\n\n%s\n", "--------------------------STARTING--------------------");
+    //printf("\n\n\n\n%s\n", "--------------------------STARTING--------------------");
 
     sockFileDescripter = socket(AF_INET, SOCK_STREAM, 0);
     if (sockFileDescripter < 0) {
@@ -164,16 +164,16 @@ int main(int argc, char *argv[]) {
             bool deadThread = false;
 
             pthread_mutex_lock(lock_running);
-            printf("\n%s\n", "Thread status:");
+            //printf("\n%s\n", "Thread status:");
             j = 0;
             for (j;j<NTHREADS;j++) {
-                printf("%d: ", j);
-                printf(running[j] ? "true\n" : "false\n");
+                //printf("%d: ", j);
+                //printf(running[j] ? "true\n" : "false\n");
             }
             j = 0;
             for (j;j<NTHREADS;j++) {
                 if (!(running[j])) {
-                    printf("%s%d, %d\n", "Dead thread, i, j: ", i, j);
+                    //printf("%s%d, %d\n", "Dead thread, i, j: ", i, j);
                     deadThread = true;
                     running[j] = true;
                     break;
@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
             pthread_mutex_unlock(lock_running);
 
             if (deadThread) {
-                printf("Starting thread_id[%d]\n", ((j)%NTHREADS));
+                //printf("Starting thread_id[%d]\n", ((j)%NTHREADS));
                 args -> id = j;
 
                 // Pass attributes when creating thread.
@@ -197,7 +197,7 @@ int main(int argc, char *argv[]) {
             if (i >= NTHREADS-1) {
                 wait = true;
                 while(wait) {
-                    printf("%s\n", "waiting");
+                    //printf("%s\n", "waiting");
                     sleep(1);
                 }
                // printf("Waiting for thread_id[%d]\n", ((i+1)%NTHREADS));

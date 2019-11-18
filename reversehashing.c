@@ -59,7 +59,7 @@ void *reversehashing(void *arg) {
     *(args->running) = 0;
     pthread_mutex_unlock(args->lock_running);
 
-    printf("%s%d\n", "Exiting thread: ", args->id);
+    //printf("%s%d\n", "Exiting thread: ", args->id);
     pthread_kill(args->main_thread, SIGUSR1);
 
     close(newSockFileDescripter);
