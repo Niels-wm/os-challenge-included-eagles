@@ -18,6 +18,7 @@
 #include <pthread.h>
 
 #include "priority_list.h"
+#include "hashtable.h"
 
 #define PORT 5003
 #define NUM_THREADS 4
@@ -84,7 +85,7 @@ int main(int argc, char *argv[]) {
             perror("ERROR on accept");
             exit(1);
         }
-        
+
         /* Build the request entry in the linked-list */
         struct Packet current_packet;
         bzero((char *) &current_packet, sizeof(current_packet));
@@ -120,25 +121,31 @@ void reversehashing (struct Request request) {
     struct Packet packet1 = request.packet;
     int n;
     int sock = request.reply_socket;
-    
-    // Reverse the start, end and p:
-    packet1.start = be64toh(packet1.start);
-    packet1.end = be64toh(packet1.end);
+    uint64_t answer = find(packet1.hash);
 
+    if (answer == 0) {
+      // Reverse the start, end and p:
+      packet1.start = be64toh(packet1.start);
+      packet1.end = be64toh(packet1.end);
+      /* SHA 256 ALGO */
 
-    /* SHA 256 ALGO */ 
-    uint64_t answer;
-    uint8_t theHash[32];
+      uint8_t theHash[32];
 
-    for (answer = packet1.start; answer <= packet1.end; answer++){
+      for (answer = packet1.start; answer <= packet1.end; answer++){
 
-        bzero(theHash, 32);
-        SHA256((const unsigned char *) &answer, 8, theHash);
+          bzero(theHash, 32);
+          SHA256((const unsigned char *) &answer, 8, theHash);
 
-        if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
+          if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
+            insert(packet1.hash, answer);
             break;
-        }
+          }
+      }
     }
+
+
+
+
 
     /* Send */
     answer = htobe64(answer);
