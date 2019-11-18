@@ -4,12 +4,9 @@ CC = gcc
 CFLAGS = -Wall -g -O3
 LIBS = -lcrypto -pthread
 
-.o: %.c
-	$(CC) $(CFLAGS) -c $^ -o $@
-
-all: messages.h server.c priority_list.o structs.h
-	${CC} ${CFLAGS} -o server $^ ${LIBS}
+all:
+	${CC} ${CFLAGS} -o server server.c reversehashing.c ${LIBS}
 
 clean:
-	rm -f server
 	rm -f *.o
+	rm -f server
