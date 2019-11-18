@@ -1,3 +1,7 @@
+
+#ifndef STRUCTS_H
+#define STRUCTS_H
+
 #include <inttypes.h>
 
 struct Packet {
@@ -12,3 +16,5 @@ struct Request {
     uint64_t prio;
     int reply_socket;
 };
+
+#endif
