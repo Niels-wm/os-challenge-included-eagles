@@ -11,6 +11,7 @@ The following features are what is implemented in our final submission to the OS
 # Experiments
 ## Thread Prioritization
 ###### Author: Lasse Pedersen, s174253
+###### Branch: thread-priority
 
 #### Experiment Motivation
 I found out about the possibility to prioritize each individual thread in Linux using the Pthread-library by changing the threads attributes. This however requires you to explicitly set the scheduler policy, which can also be done through the Pthread library. The reason for the experiment was that I was interested in knowing if the inbuilt scheduler could be manipulated into prioritizing those specific threads who are specifically assigned to running the reverse hashing algorithm. The mindset was that if these threads could be given priority over system tasks, an improvement in performance would hopefully be noticeable. But before being able to set the thread-priority you first have to assign the scheduler policy. The default Linux policy is 'SCHED\_OTHER', which is a time-sharing round-robin scheduler who will assign each task a certain amount of time pending on what other tasks that are running in the system. There are a number of alternative policies, but I will mainly be focusing on SCHED\_FIFO and SCHED\_RR, who both are real-time policies that will pre-empt (interrupt) every other task. These will allow me to set their individual thread priority (SCHED\_OTHER does not allow for setting priorities). For proof of concept the thread priority will be loosely based on the task priority.
@@ -72,6 +73,7 @@ The results indicated that there is no real performance benefit from manipulatin
 
 ## Optimizing 'memcmp'
 ###### Author: Lasse Pedersen, s174253
+###### Branch: memcmp-optimization
 
 #### Experiment Motivation
 Our reverse hashing "algorithm" works by calculating all values between the start and the end (received in the request), and then comparing it with the hash that are to be reversed. Whenever there is a match, we send this value back to the client as the value of which the hash was generated from. This means that we do a lot of comparisons and for that we are have just been using the inbuilt C-library function 'memcmp'. The memcmp-function will compare the strings byte by byte for the given length and tell if the bytes are not the same. I would argue that this process could be optimized in the way of casting the pointers (of the values) to integers and then subtracting these from each other. This would give a value which could quickly be checked to see if it was 0 or not, without having to compare each individual byte. There is however one special case, whereby I could think of memcmp being faster. That would be in the event of the compare length is four or less, because of the way memcmp is set up to compare values in increments of four. But as long as the values are not aligned in a 4-byte boundary then I believe that the experiment implementation would be quicker (in theory).
@@ -155,6 +157,7 @@ The reason we at all bother to do these experiments is because the computer whic
 
 ## Sequential Model vs Process Model
 ###### Author: Niels With Mikkelsen, s174290
+###### Branch: Master (Milestone submission)
 In this experiment we want to compare an implementation using only one process (sequential) and an implementation using multiple processes (concurrent). The motivation for this experiment should be obvious: We think that it is faster to handle multiple client request concurrently than handling every request sequentially and thus we will test it.
 
 The sequential model is probably the simplest working implementation of the challenge. The server accepts one client request at a time, calculate the reversed hash and sends back the answer to the client. I believe that this implementation will be the slowest one, because it is the minimum viable product (MVP) for accomplishing 100% reliability and has no optimizations.
@@ -195,6 +198,7 @@ Looking at the results there is a noticeable difference when comparing the avera
 
 ## Process Model vs Thread Model
 ###### Author: Niels With Mikkelsen, s174290
+###### Branch: threads
 In this experiment we want to compare an implementation using multiple processes and an implementation using multiple threads. The motivation for this experiment is to solve the weakness described in "Discussion and Conclison" the experiment above.
 
 The process model is described in the "Sequential Model vs Process Model" experiment.
@@ -237,6 +241,7 @@ Again, looking at the result there is a noticeable difference when comparing the
 
 ## Optimizing Maximum Number Threads
 ###### Author: Niels With Mikkelsen, s174290
+###### Branch: threads
 In this experiment we want to address the problem with having more threads than CPU cores, the reason that this is a problem is, that if we start more threads/processes than we have cores, the scheduler have to do context switches (which takes time). The motivation is to avoid making these context switches. This should be as simple as setting the number of threads equal to the number of cores, however we will try some different number of threads to see which number actually give us the best performance.
 
 #### Setup
@@ -414,6 +419,7 @@ outperform a simple FIFO.
 
 ## Caching Requests
 ###### Author: Sebastian Arcos Specht, s164394
+###### Branch: hash-tables
 
 #### Experiment Motivation
 In a real world scenario an operating system might receive various types of tasks, some of which may occur more frequent than others. It is therefore valuable to make the resource that are accessed very frequently easy-accessible. However, the way users use the operating system and access different resources is very individual and the operating system therefore has to be capable of adapting to the behavior of different users. Concretely, this means to have resources that are often used by an individual user in memory that is fast to access thereby making the tasks that the user often performs faster. In the OS-challenge this problem is described by having a repetition on the requests making it likely that a request is a duplicate of a previously sent request. A way of solving this issue is to have a cache where requests that have been solved, i.e. where the original value for the hash key has been found, can be saved. When a request with the same hash value is sent again the original value can be found quickly. In practice different types of caches can be implemented with different benefits and drawbacks. In this project, the first solution to this problem was to build a cache with a splay tree structure. A splay tree is a binary tree which has the property of maintaining a structure where recently accessed data elements are stored close to the root of the tree, meaning they can be found relatively easily. Another commonly used structure for caches is hash tables, which at the end was chosen to be implemented in this project. Hash tables have several advantages over splay trees if they are maintained well and have a proper hash function. An optimal hash function has an average time complexity for insert and find of O(1), which is better than for splay trees.
@@ -469,3 +475,67 @@ The results also indicated that nearly all prioritization levels were used in th
 
 #### Conclusion
 The results indicated that there is no real performance benefit from manipulating the OS scheduler. The numbers fluctuate between being either slightly faster or slightly slower with the scheduler policy and thread prioritization set. So, in conclusion, I think the OS scheduler is perfectly alright at self-managing individual tasks and in an environment were all background tasks were kept at a minimum then the OS scheduler had really no other tasks to down prioritize (with or without the experiment implementation).
+
+
+
+
+## Simple vs complex thread management
+###### Author: Nikolaj Geertinger, s153140
+###### Branch: Testing_thread-management
+
+#### Experiment Motivation
+A complex solution is not necessarily better and/or faster than a simple one, but it can have the ability to change behaviour to better suit its current state. But the logic responsible for this will cost resources that could otherwise be spend on directly solving the problem with a simpler approach, e.g. more CPU time for brute forcing a solution. 
+The benchmark for this experiment is an implementation that creates as many threads as allowed and then waits for the last one created to finish before creating new threads. This means that theoretically all but one thread could have finished and that any new threads could not be created before this last one has exited.
+An attempt to improve upon this simpler approach is to wait for any thread to finish and then create a new thread immediately. This would require keeping track of variables and mutexes shared between the threads (and avoiding race conditions), which would to an unknown degree counteracts the performance boost achieveable through reducing the number of idle threads.
+
+
+#### Setup
+Five test runs were made for the benchmark and attempted improvement implementations each. All tests were run on the same computer under as identical conditions as possible using Vagrant. The tests were run back to back.
+
+##### Run Configuration
+| Setting           | Value         |
+| ------------------|:-------------:|
+| SERVER            | 192.168.101.10|
+| PORT              | 5003          |
+| SEED              | 1234       	|
+| TOTAL             | 50           	|
+| START             | 1             |
+| DIFFICULTY        | 25000000      |
+| REP\_PROB\_PERCENT| 20            |
+| DELAY_US          | 100         	|
+| PRIO_LAMBDA       | 0.15          |
+
+##### Hardware Specification
+The specifications of the computer used is shown below:
+
+| Specification     | Value         |
+| ------------------|:-------------:|
+| CPU               | Intel i7      |
+| CPU clock speed   | 2.5 GHz       |
+| No. of CPU cores  | 4             |
+| RAM amount        | 8 GB         	|
+| RAM type          | 1600 MHz DDR3 |
+| OS                | Windows 10 Pro|
+
+##### Possible Errors
+There is a <em>feature</em> in the implementation used that causes the server to slow down drastically if it is not restartet between runs. I have not been able to fix this in time for the deadline. The server was therefore restarted between runs, as the intented behaviour is more interesting than a slowed down single thread version.
+
+
+#### Results
+The results of the runs of the benchmark and the attempted improvement are shown in the table below:
+
+| Run          | Attempted improvemnt| Benchmark 	 |
+| -------------|:----------------:|:----------------:|
+| First run    | 399,678,749 	  | 447,303,326      |
+| Second run   | 403,371,309	  | 450,411,566      |
+| Third run    | 393,811,925   	  | 432,328,906      | 
+| Fourth run   | 405,405,428   	  | 440,569,433      | 
+| Fifth run    | 400,218,740   	  |438,554,479       | 
+| **Mean**     |**400,497,230**   |**441,833,542**   |
+
+
+#### Discussion
+The more complex thread management implementation looks like an improvement over the simpler version, but it could most likely be improved upon by reducing the amount of unnecessary operations. The higher the difficulty is, the better the attempted improvement will be compared to the benchmark. For low difficulty settings, this implementation will most likely be slower than the simpler benchmark, as the CPU time used on managing the threads should be constant while the performance boost should scale with the amount of time spend on reverse hashing (i.e. actually finding a solution). The higher the difficulty, the larger the proportion of CPU time spent on reverse hashing vs spent on all other operations. 
+
+#### Conclusion
+The attempted improvement seems to be a small performance boost compared to the simpler benchmark, on average ~10.3 % faster. There seems to be a slightly higher variance between the benchmark run times compared to the implemented improvement, which would make sense as the improved version should be using all the available CPU cores more of the time - though some that time is spent on managing the threads. 
