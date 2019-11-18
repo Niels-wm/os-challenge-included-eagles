@@ -427,7 +427,7 @@ In a real world scenario an operating system might receive various types of task
 For this experiment a hash table with open addressing has been implemented. In case of a collision linear probing is used to find an empty slot in the hash table. The hash table is optimized for the final os-challenge which in total sends 1000 requests. To minimize collision the size of the hash table was chosen to be 4096. Furthermore experiments with different hash functions has been carried out to spread out the requests evenly in the hash table and avoid collision.
 
 #### Setup
-The tests stated below have all run on the same machine. Five tests have been performed before and after the implementation of the hash table. The tests copies most of the settings from the `run-client-final.sh`-script, with the exception of amount of request which has been reduced to 100. Please see the implementation in the `hash-tables`-branch. For each test the seed has been changed but for one test the seed was the same for both versions.
+The tests stated below have all run on the same machine. Five tests have been performed before and after the implementation of the hash table. The tests copies most of the settings from the `run-client-final.sh`-script, with the exception of amount of request which has been reduced to 100. Please see the implementation in the `refactor-reverse-hasing`-branch. For each test the seed has been changed but for one test the seed was the same for both versions.
 
 ##### Run Configuration
 | Setting           | Value         |
@@ -463,20 +463,14 @@ Below are the results of the nine runs. Thousand separators are added for easier
 
 | Run          | Seed         | Without hash table  | With hash table  |
 | -------------|:------------:|:-------------------:|:----------------:|
-| First run    | 85.753.653   | 85.753.653   	      | 86.106.845       |
-| Second run   | 85.787.545	  | 85.787.545	        | 85.518.831       |
-| Third run    | 87.488.100   | 87.488.100    	    | 85.497.092       |
-| Fifth run    | 87.488.100   |  87.488.100         | 85.497.092       |
-| Sixth run    | 87.488.100   | 87.488.100    	    | 85.497.092       |
-| **Median**   |**85.787.545**| **85.787.545**      |**85.518.831**    |
-
-The results also indicated that nearly all prioritization levels were used in the tests. Ranging between level 1 and level 16.
+| First run    | 3435245      | 46.576.610   	      | 42.154.478       |
+| Second run   | 343524   	  | 58.094.685	        | 43.041.318       |
+| Third run    | 34352        | 71.796.656    	    | 60.601.342       |
+| **Median**   |              | **58.822.650**      |**48.599.046**    |
 
 
 #### Conclusion
-The results indicated that there is no real performance benefit from manipulating the OS scheduler. The numbers fluctuate between being either slightly faster or slightly slower with the scheduler policy and thread prioritization set. So, in conclusion, I think the OS scheduler is perfectly alright at self-managing individual tasks and in an environment were all background tasks were kept at a minimum then the OS scheduler had really no other tasks to down prioritize (with or without the experiment implementation).
-
-
+The results indicated that a significant performance boost can be achieved by implementing hash tables. At least this is the case when requests are not completely random but some of which appear more frequently than others. The results showed a 17,4% drop in time with the implementation of a hash table.
 
 
 ## Simple vs complex thread management
@@ -484,7 +478,7 @@ The results indicated that there is no real performance benefit from manipulatin
 ###### Branch: Testing_thread-management
 
 #### Experiment Motivation
-A complex solution is not necessarily better and/or faster than a simple one, but it can have the ability to change behaviour to better suit its current state. But the logic responsible for this will cost resources that could otherwise be spend on directly solving the problem with a simpler approach, e.g. more CPU time for brute forcing a solution. 
+A complex solution is not necessarily better and/or faster than a simple one, but it can have the ability to change behaviour to better suit its current state. But the logic responsible for this will cost resources that could otherwise be spend on directly solving the problem with a simpler approach, e.g. more CPU time for brute forcing a solution.
 The benchmark for this experiment is an implementation that creates as many threads as allowed and then waits for the last one created to finish before creating new threads. This means that theoretically all but one thread could have finished and that any new threads could not be created before this last one has exited.
 An attempt to improve upon this simpler approach is to wait for any thread to finish and then create a new thread immediately. This would require keeping track of variables and mutexes shared between the threads (and avoiding race conditions), which would to an unknown degree counteracts the performance boost achieveable through reducing the number of idle threads.
 
@@ -528,14 +522,14 @@ The results of the runs of the benchmark and the attempted improvement are shown
 | -------------|:----------------:|:----------------:|
 | First run    | 399,678,749 	  | 447,303,326      |
 | Second run   | 403,371,309	  | 450,411,566      |
-| Third run    | 393,811,925   	  | 432,328,906      | 
-| Fourth run   | 405,405,428   	  | 440,569,433      | 
-| Fifth run    | 400,218,740   	  |438,554,479       | 
+| Third run    | 393,811,925   	  | 432,328,906      |
+| Fourth run   | 405,405,428   	  | 440,569,433      |
+| Fifth run    | 400,218,740   	  |438,554,479       |
 | **Mean**     |**400,497,230**   |**441,833,542**   |
 
 
 #### Discussion
-The more complex thread management implementation looks like an improvement over the simpler version, but it could most likely be improved upon by reducing the amount of unnecessary operations. The higher the difficulty is, the better the attempted improvement will be compared to the benchmark. For low difficulty settings, this implementation will most likely be slower than the simpler benchmark, as the CPU time used on managing the threads should be constant while the performance boost should scale with the amount of time spend on reverse hashing (i.e. actually finding a solution). The higher the difficulty, the larger the proportion of CPU time spent on reverse hashing vs spent on all other operations. 
+The more complex thread management implementation looks like an improvement over the simpler version, but it could most likely be improved upon by reducing the amount of unnecessary operations. The higher the difficulty is, the better the attempted improvement will be compared to the benchmark. For low difficulty settings, this implementation will most likely be slower than the simpler benchmark, as the CPU time used on managing the threads should be constant while the performance boost should scale with the amount of time spend on reverse hashing (i.e. actually finding a solution). The higher the difficulty, the larger the proportion of CPU time spent on reverse hashing vs spent on all other operations.
 
 #### Conclusion
-The attempted improvement seems to be a small performance boost compared to the simpler benchmark, on average ~10.3 % faster. There seems to be a slightly higher variance between the benchmark run times compared to the implemented improvement, which would make sense as the improved version should be using all the available CPU cores more of the time - though some that time is spent on managing the threads. 
+The attempted improvement seems to be a small performance boost compared to the simpler benchmark, on average ~10.3 % faster. There seems to be a slightly higher variance between the benchmark run times compared to the implemented improvement, which would make sense as the improved version should be using all the available CPU cores more of the time - though some that time is spent on managing the threads.
