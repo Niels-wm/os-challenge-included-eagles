@@ -1,36 +1,34 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "messages.h"
-#include "packet.h"
-#include "reversehashing.h"
 
 #include <unistd.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <pthread.h>
-#include "threadinfo.h"
 
 #include <netdb.h>
 #include <netinet/in.h>
 
 #include <string.h>
-#include "hashtable.h"
+#include <inttypes.h>
+#include <unistd.h>
+
+#include <pthread.h>
+
+#include "priority_list.h"
 
 #define PORT 5003
-#define THREAD_AMOUNT 5
+#define NUM_THREADS 4
 
-int* threadAmount;
-struct Packet packets[100];
+static void* worker_thread(void* vp);
+void reversehashing (struct Request request);
 
 int main(int argc, char *argv[]) {
     int sockFileDescripter, newSockFileDescripter;
     struct sockaddr_in serverAddr, clientAddr;
     socklen_t clientAddrSize;
-    int i, err;
-    initHashTable();
-
-    //pthread_t thread;
 
     sockFileDescripter = socket(AF_INET, SOCK_STREAM, 0);
     if (sockFileDescripter < 0) {
@@ -66,33 +64,88 @@ int main(int argc, char *argv[]) {
     listen(sockFileDescripter, 1000);
     clientAddrSize = sizeof(clientAddr);
 
-    i = 0;
-    pthread_t tid[THREAD_AMOUNT];
+    /* initialize the priority list */
+    init_list();
 
-    // // Put the accept statement and the following code in an infinite loop
+    /* create the worker threads */
+    int i;
+    for(i = 0; i < NUM_THREADS; i++){
+        pthread_t thread;
+        pthread_create(&thread, NULL, &worker_thread, NULL);
+    }
+
+    // Put the accept statement and the following code in an infinite loop
     while (1) {
-            // printf("\nHere are the i: %d", i);
-            /* Accept */
-            newSockFileDescripter = accept(sockFileDescripter, (struct sockaddr *)&clientAddr, &clientAddrSize);
 
-            if (newSockFileDescripter < 0){
-                perror("ERROR on accept");
-                exit(1);
-            }
-            struct ThreadInfo* ti = malloc(sizeof(struct ThreadInfo));
-            ti->fs = newSockFileDescripter;
+        /* Accept */
+        newSockFileDescripter = accept(sockFileDescripter, (struct sockaddr *)&clientAddr, &clientAddrSize);
 
-            // For each client request creates a thread and assign the request to it to process
-            err = pthread_create(&tid[i%THREAD_AMOUNT], NULL, reversehashing, ti);
+        if (newSockFileDescripter < 0){
+            perror("ERROR on accept");
+            exit(1);
+        }
+        
+        /* Build the request entry in the linked-list */
+        struct Packet current_packet;
+        bzero((char *) &current_packet, sizeof(current_packet));
+        if (read(newSockFileDescripter, &current_packet, sizeof(current_packet)) < 0){
+            perror("ERROR reading from socket");
+            exit(1);
+        }
 
-            // pthread_join(tid[(i)%THREAD_AMOUNT], NULL);
-            if (err != 0) {
-                perror("ERROR creating thread");
-                exit(1);
-            }
-            if (i>=(THREAD_AMOUNT-1)) {
-              pthread_join(tid[(i+1)%THREAD_AMOUNT], NULL);
-            }
-            i++;
+        /* construct the request, which tracks the return socket as well as the expected value of task completion */
+        struct Request request;
+        request.reply_socket = newSockFileDescripter;
+        request.packet = current_packet;
+        request.prio = (current_packet.end - current_packet.start) / current_packet.p; // compute the difficulty/reward of the task
+
+        push_item(request);
+    }
+}
+
+/* the worker threads simply pull items from the list and process them */
+static void* worker_thread(void* vp){
+    while(1){
+        struct Request request = pop_item();
+        if(request.reply_socket == -1){
+            usleep(1000); // prevent to worker threads from just spinning if they're idle - give someone else the wheel!
+            continue;
+        }
+        reversehashing(request);
+    }
+    return NULL; // I win this time, gcc! :P
+}
+
+void reversehashing (struct Request request) {
+    struct Packet packet1 = request.packet;
+    int n;
+    int sock = request.reply_socket;
+    
+    // Reverse the start, end and p:
+    packet1.start = be64toh(packet1.start);
+    packet1.end = be64toh(packet1.end);
+
+
+    /* SHA 256 ALGO */ 
+    uint64_t answer;
+    uint8_t theHash[32];
+
+    for (answer = packet1.start; answer <= packet1.end; answer++){
+
+        bzero(theHash, 32);
+        SHA256((const unsigned char *) &answer, 8, theHash);
+
+        if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
+            break;
+        }
+    }
+
+    /* Send */
+    answer = htobe64(answer);
+    n = write(sock, &answer ,8);
+    close(sock);
+
+    if(n < 0) {
+        perror("ERROR writing to socket");
     }
 }
