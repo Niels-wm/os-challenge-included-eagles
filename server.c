@@ -69,7 +69,5 @@ int main(int argc, char *argv[]){
     }
   }
 
-  for (i = 0; i < producerCount; i++) {
-    pthread_join(tIdsProducers[i], NULL);
-  }
+  return 0;
 }
