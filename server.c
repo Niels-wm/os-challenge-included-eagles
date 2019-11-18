@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "messages.h"
 #include "structs.h"
+#include "reversehashing.h"
 
 #include <unistd.h>
 
@@ -122,38 +123,4 @@ static void* worker_thread(void* vp){
         reversehashing(request);
     }
     return NULL; // I win this time, gcc! :P
-}
-
-void reversehashing (struct Request request) {
-    struct Packet packet1 = request.packet;
-    int n;
-    int sock = request.reply_socket;
-    
-    // Reverse the start, end and p:
-    packet1.start = be64toh(packet1.start);
-    packet1.end = be64toh(packet1.end);
-
-
-    /* SHA 256 ALGO */ 
-    uint64_t answer;
-    uint8_t theHash[32];
-
-    for (answer = packet1.start; answer <= packet1.end; answer++){
-
-        bzero(theHash, 32);
-        SHA256((const unsigned char *) &answer, 8, theHash);
-
-        if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
-            break;
-        }
-    }
-
-    /* Send */
-    answer = htobe64(answer);
-    n = write(sock, &answer ,8);
-    close(sock);
-
-    if(n < 0) {
-        perror("ERROR writing to socket");
-    }
 }
