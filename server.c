@@ -21,15 +21,18 @@
 #include "hashtable.h"
 
 #define PORT 5003
-#define NUM_THREADS 4
+#define THREAD_AMOUNT 5
 
 static void* worker_thread(void* vp);
-void reversehashing (struct Request request);
+#include "reversehashing.h"
+
+// void reversehashing (struct Request request);
 
 int main(int argc, char *argv[]) {
     int sockFileDescripter, newSockFileDescripter;
     struct sockaddr_in serverAddr, clientAddr;
     socklen_t clientAddrSize;
+    int err;
 
     sockFileDescripter = socket(AF_INET, SOCK_STREAM, 0);
     if (sockFileDescripter < 0) {
@@ -70,9 +73,15 @@ int main(int argc, char *argv[]) {
 
     /* create the worker threads */
     int i;
-    for(i = 0; i < NUM_THREADS; i++){
+    for(i = 0; i < THREAD_AMOUNT; i++){
         pthread_t thread;
-        pthread_create(&thread, NULL, &worker_thread, NULL);
+        err = pthread_create(&thread, NULL, &worker_thread, NULL);
+        
+        if (err != 0) {
+            perror("ERROR creating thread");
+            exit(1);
+        }
+    }
     }
 
     // Put the accept statement and the following code in an infinite loop
@@ -115,44 +124,4 @@ static void* worker_thread(void* vp){
         reversehashing(request);
     }
     return NULL; // I win this time, gcc! :P
-}
-
-void reversehashing (struct Request request) {
-    struct Packet packet1 = request.packet;
-    int n;
-    int sock = request.reply_socket;
-    uint64_t answer = find(packet1.hash);
-
-    if (answer == 0) {
-      // Reverse the start, end and p:
-      packet1.start = be64toh(packet1.start);
-      packet1.end = be64toh(packet1.end);
-      /* SHA 256 ALGO */
-
-      uint8_t theHash[32];
-
-      for (answer = packet1.start; answer <= packet1.end; answer++){
-
-          bzero(theHash, 32);
-          SHA256((const unsigned char *) &answer, 8, theHash);
-
-          if (memcmp(theHash, packet1.hash, sizeof(theHash)) == 0) {
-            insert(packet1.hash, answer);
-            break;
-          }
-      }
-    }
-
-
-
-
-
-    /* Send */
-    answer = htobe64(answer);
-    n = write(sock, &answer ,8);
-    close(sock);
-
-    if(n < 0) {
-        perror("ERROR writing to socket");
-    }
 }
