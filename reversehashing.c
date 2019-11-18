@@ -18,7 +18,7 @@ void *reversehashing(struct Request request, pthread_mutex_t* lock) {
 
     uint8_t testHash[32];
     int sock = request.reply_socket;
-    int i, n;
+    int n;
 
     // Reverse the start, end and p:
     packet.start = be64toh(packet.start);
@@ -37,7 +37,6 @@ void *reversehashing(struct Request request, pthread_mutex_t* lock) {
     bzero(testHash, 32);
     SHA256((const unsigned char*) &foundAnswer, 8, testHash);
     if (foundAnswer != 0 && testcmp(testHash, packet.hash, sizeof(testHash)) == 0){
-        printf("\nFOUND in hashtable\n");
         foundAnswer = be64toh(foundAnswer);
         n = write(sock, &foundAnswer, 8);
 
@@ -46,14 +45,12 @@ void *reversehashing(struct Request request, pthread_mutex_t* lock) {
             exit(1);
         }
         // If no value found in hash table use brute force algorithm
-    }
-    else {
-        for (answer; answer <= packet.end; answer++){
+    } else {
+        for (answer = packet.start; answer <= packet.end; answer++){
             bzero(theHash, 32);
             SHA256((const unsigned char*) &answer, 8, theHash);
 
             if (testcmp(theHash, packet.hash, sizeof(theHash)) == 0) {
-                //printf("\nFound a match, with:  %" PRIu64, answer);
                 break;
             }
         }

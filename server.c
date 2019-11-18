@@ -64,8 +64,6 @@ int main(int argc, char *argv[]) {
     listen(sockFileDescripter, 5);
     clientAddrSize = sizeof(clientAddr);
 
-
-
     ht_lock = malloc(sizeof(pthread_mutex_t));
 
 
