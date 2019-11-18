@@ -68,8 +68,8 @@ void *produceToJobQueue(void *args){
         exit(1);
     }
 
-    err = read(fd, &packet, sizeof(struct Packet));
-    packet.fd = fd;
+    // err = read(fd, &packet, sizeof(struct Packet));
+    // packet.fd = fd;
 
     if (err < 0){
       perror("ERROR reading from socket");
@@ -80,7 +80,8 @@ void *produceToJobQueue(void *args){
     sem_wait(&queueLock);
     // Critical section
     jobPos++;
-    jobQueue[jobPos] = packet;
+    err = read(fd, &jobQueue[jobPos], sizeof(struct Packet));
+    jobQueue[jobPos].fd = fd;     
 
     sem_post(&queueLock);
     sem_post(&fillCount);
